@@ -1,0 +1,16 @@
+{
+  "name": "bun",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch run src/index.ts"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "dependencies": {
+    "@nokijs/client": "workspace:*",
+    "@nokijs/server": "workspace:*",
+    "typescript": "^5.0.0"
+  }
+}

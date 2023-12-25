@@ -1,0 +1,25 @@
+{
+  "name": "nokijs",
+  "devDependencies": {
+    "@biomejs/biome": "^1.4.1",
+    "turbo": "latest"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "bun@1.0.11",
+  "private": true,
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "format": "turbo format"
+  },
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "dependencies": {
+    "@sinclair/typebox": "^0.32.2"
+  }
+}
