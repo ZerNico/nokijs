@@ -1,0 +1,33 @@
+{
+  "name": "@nokijs/client",
+  "module": "index.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      }
+    }
+  },
+  "sideEffects": false,
+  "devDependencies": {
+    "@nokijs/server": "workspace:*",
+    "@types/bun": "latest",
+    "@vitest/coverage-v8": "^1.5.2",
+    "rollup": "^4.13.2",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.5.0"
+  },
+  "scripts": {
+    "build": "rollup --config rollup.config.ts --configPlugin typescript2",
+    "dev": "rollup --config rollup.config.ts --configPlugin typescript2 --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "ufo": "^1.5.3"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "nokijs",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel --force",
+    "test": "turbo run test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.6.3",
+    "turbo": "^1.13.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ]
+}
