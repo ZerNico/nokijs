@@ -2,7 +2,7 @@ import { getQuery } from "ufo";
 import { ResponseBuilder } from "../response";
 import { parseCookie } from "./cookie";
 
-export function buildOptions(request: Request) {
+export function buildContext(request: Request) {
   return {
     cookies: parseCookie(request.headers.get("cookie") || ""),
     headers: Object.fromEntries(request.headers.entries()),
@@ -12,4 +12,4 @@ export function buildOptions(request: Request) {
   };
 }
 
-export type BaseOptions = ReturnType<typeof buildOptions>;
+export type BaseContext = ReturnType<typeof buildContext>;

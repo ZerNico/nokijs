@@ -4,15 +4,15 @@ import type { AnyRoute } from "../types";
 
 export function groupRoutes<const TRoutes extends AnyRoute[], const TPrefix extends string | undefined = undefined>(
   routes: TRoutes,
-  options?: { prefix: TPrefix },
+  opts?: { prefix: TPrefix },
 ): TPrefix extends string ? PrefixedRoutes<TRoutes, TPrefix> : TRoutes {
-  if (options?.prefix) {
+  if (opts?.prefix) {
     const prefixedRoutes = [] as AnyRoute[];
 
     for (const route of routes) {
       prefixedRoutes.push(
         new Route({
-          path: joinURL(options.prefix, route.path),
+          path: joinURL(opts.prefix, route.path),
           method: route.method,
           fn: route.fn,
           handler: route.handler,

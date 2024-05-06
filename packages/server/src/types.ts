@@ -25,14 +25,14 @@ export type MaybePromise<T> = T | Promise<T>;
 export type PossibleResponse = Response | TypedResponse<any>;
 
 export type Handler =
-  | { type: "derive"; fn: (options: any) => any }
+  | { type: "derive"; fn: (context: any) => any }
   | {
       type: "before";
-      fn: (options: any) => MaybePromise<PossibleResponse | void>;
+      fn: (context: any) => MaybePromise<PossibleResponse | void>;
     }
   | {
       type: "after";
-      fn: (response: PossibleResponse, options: any) => MaybePromise<PossibleResponse | void>;
+      fn: (response: PossibleResponse, context: any) => MaybePromise<PossibleResponse | void>;
     }
   | {
       type: "validate";

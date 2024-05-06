@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { ResponseBuilder } from "../response";
-import { buildOptions } from "./options";
+import { buildContext } from "./context";
 
-describe("buildOptions", () => {
+describe("buildContext", () => {
   it("should return an object with cookies and headers", () => {
     const request = new Request("https://localhost:3000", {
       headers: new Headers({
@@ -11,13 +11,13 @@ describe("buildOptions", () => {
       }),
     });
 
-    const options = buildOptions(request);
+    const context = buildContext(request);
 
-    expect(options.cookies).toEqual({
+    expect(context.cookies).toEqual({
       key1: "value1",
       key2: "value2",
     });
-    expect(options.headers).toEqual({
+    expect(context.headers).toEqual({
       cookie: "key1=value1; key2=value2",
       "other-header": "value",
     });
@@ -30,10 +30,10 @@ describe("buildOptions", () => {
       }),
     });
 
-    const options = buildOptions(request);
+    const context = buildContext(request);
 
-    expect(options.cookies).toEqual({});
-    expect(options.headers).toEqual({
+    expect(context.cookies).toEqual({});
+    expect(context.headers).toEqual({
       "other-header": "value",
     });
   });
@@ -41,25 +41,25 @@ describe("buildOptions", () => {
   it("should include a response builder", () => {
     const request = new Request("https://localhost:3000");
 
-    const options = buildOptions(request);
+    const context = buildContext(request);
 
-    expect(options.res).toBeInstanceOf(ResponseBuilder);
+    expect(context.res).toBeInstanceOf(ResponseBuilder);
   });
 
   it("should include the query", () => {
     const request = new Request("https://localhost:3000?foo=bar");
 
-    const options = buildOptions(request);
+    const context = buildContext(request);
 
-    expect(options.query).toEqual({ foo: "bar" });
+    expect(context.query).toEqual({ foo: "bar" });
   });
 
   it("should include a clone of the request", () => {
     const request = new Request("https://localhost:3000");
 
-    const options = buildOptions(request);
+    const context = buildContext(request);
 
-    expect(options.raw).toBeInstanceOf(Request);
-    expect(options.raw).not.toBe(request);
+    expect(context.raw).toBeInstanceOf(Request);
+    expect(context.raw).not.toBe(request);
   });
 });

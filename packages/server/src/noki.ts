@@ -5,10 +5,10 @@ import type { AnyRoute } from "./types";
 export class Noki<TRoutes extends readonly AnyRoute[]> {
   private router: Memoirist<AnyRoute>;
 
-  constructor(options: { routes: TRoutes }) {
+  constructor(opts: { routes: TRoutes }) {
     const router = new Memoirist<AnyRoute>();
 
-    for (const route of options.routes) {
+    for (const route of opts.routes) {
       router.add(route.method, route.path, route);
     }
 

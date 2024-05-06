@@ -2,7 +2,7 @@ import { getQuery } from "ufo";
 import type { MaybePromise } from "valibot";
 import type { Handler, Inputs, PossibleResponse, ResponseTypes, ValidationSchemas } from "./types";
 import { parseBody } from "./utils/body";
-import { buildOptions } from "./utils/options";
+import { buildContext } from "./utils/context";
 import { validate } from "./utils/validator";
 
 export class Route<
@@ -14,18 +14,18 @@ export class Route<
 > {
   public path: TPath;
   public method: TMethod;
-  public fn: (options: any) => MaybePromise<PossibleResponse>;
+  public fn: (context: any) => MaybePromise<PossibleResponse>;
   public validationSchemas?: ValidationSchemas;
   public handler?: Handler[];
-  public errorHandler: (error: unknown, options: any) => MaybePromise<PossibleResponse>;
+  public errorHandler: (error: unknown, context: any) => MaybePromise<PossibleResponse>;
 
   constructor(opts: {
     path: TPath;
     method: TMethod;
     handler?: Handler[];
-    fn: (opts: any) => MaybePromise<PossibleResponse>;
+    fn: (context: any) => MaybePromise<PossibleResponse>;
     validationSchemas?: ValidationSchemas;
-    errorHandler?: (error: unknown, options: any) => MaybePromise<PossibleResponse>;
+    errorHandler?: (error: unknown, context: any) => MaybePromise<PossibleResponse>;
   }) {
     this.path = opts.path;
     this.method = opts.method;
@@ -37,13 +37,13 @@ export class Route<
 
   public async handle(request: Request, params: Record<string, string | undefined>) {
     try {
-      let options: Record<string, any> = { ...buildOptions(request), params };
+      let context: Record<string, any> = { ...buildContext(request), params };
 
       for (const handler of this.handler || []) {
         if (handler.type === "derive") {
-          options = { ...options, ...handler.fn(options) };
+          context = { ...context, ...handler.fn(context) };
         } else if (handler.type === "before") {
-          const response = await handler.fn(options);
+          const response = await handler.fn(context);
           if (response) {
             return response;
           }
@@ -51,19 +51,19 @@ export class Route<
           if (handler.key === "body" && this.validationSchemas?.body) {
             const body = await parseBody(request);
 
-            options = { ...options, body: await validate(this.validationSchemas.body, body) };
+            context = { ...context, body: await validate(this.validationSchemas.body, body) };
           } else if (handler.key === "query" && this.validationSchemas?.query) {
             const query = getQuery(request.url);
-            options = { ...options, query: await validate(this.validationSchemas.query, query) };
+            context = { ...context, query: await validate(this.validationSchemas.query, query) };
           }
         }
       }
 
-      let response = await this.fn(options);
+      let response = await this.fn(context);
 
       for (const handler of this.handler || []) {
         if (handler.type === "after") {
-          const modifiedResponse = await handler.fn(response, options);
+          const modifiedResponse = await handler.fn(response, context);
           if (modifiedResponse) {
             response = modifiedResponse;
           }

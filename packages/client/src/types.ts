@@ -25,7 +25,7 @@ type PathToChain<
 type ClientRequest<TRoute extends AnyRoute> = Prettify<
   {
     [K in Lowercase<TRoute["method"]>]: (
-      options: Prettify<
+      opts: Prettify<
         OmitNever<
           {
             query?: QueryObject;
