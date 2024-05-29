@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "memoirist": "^0.1.10",
-    "ufo": "^1.5.3"
+    "ufo": "^1.5.3",
+    "valibot": "0.30.0"
   }
 }

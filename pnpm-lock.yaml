@@ -23,7 +23,7 @@ importers:
     dependencies:
       '@gcornut/valibot-json-schema':
         specifier: ^0.0.27
-        version: 0.0.27(@types/json-schema@7.0.15)(esbuild-runner@2.2.2(esbuild@0.20.2))(esbuild@0.20.2)(valibot@0.30.0)
+        version: 0.0.27(@types/json-schema@7.0.15)(esbuild-runner@2.2.2(esbuild@0.20.2))(esbuild@0.20.2)(valibot@0.31.0-rc.6)
       '@nokijs/client':
         specifier: workspace:*
         version: link:../../packages/client
@@ -77,6 +77,9 @@ importers:
       ufo:
         specifier: ^1.5.3
         version: 1.5.3
+      valibot:
+        specifier: 0.30.0
+        version: 0.30.0
     devDependencies:
       '@vitest/coverage-v8':
         specifier: ^1.5.2
@@ -1076,6 +1079,9 @@ packages:
   valibot@0.30.0:
     resolution: {integrity: sha512-5POBdbSkM+3nvJ6ZlyQHsggisfRtyT4tVTo1EIIShs6qCdXJnyWU5TJ68vr8iTg5zpOLjXLRiBqNx+9zwZz/rA==}
 
+  valibot@0.31.0-rc.6:
+    resolution: {integrity: sha512-NW4mnZsSyLCj2TweTPBuo7jzhZywh3C2M0T5UU53po2jhg/0k7B63pQTt3hkcdZl2JkSZEYHliKzO/2OsLFqlQ==}
+
   vite-node@1.6.0:
     resolution: {integrity: sha512-de6HJgzC+TFzOu0NTC4RAIsyf/DY/ibWDYQUcuEA84EMHhcefTUGkjFHKKEJhQN4A+6I0u++kr3l36ZF2d7XRw==}
     engines: {node: ^18.0.0 || >=20.0.0}
@@ -1286,12 +1292,12 @@ snapshots:
   '@esbuild/win32-x64@0.20.2':
     optional: true
 
-  '@gcornut/valibot-json-schema@0.0.27(@types/json-schema@7.0.15)(esbuild-runner@2.2.2(esbuild@0.20.2))(esbuild@0.20.2)(valibot@0.30.0)':
+  '@gcornut/valibot-json-schema@0.0.27(@types/json-schema@7.0.15)(esbuild-runner@2.2.2(esbuild@0.20.2))(esbuild@0.20.2)(valibot@0.31.0-rc.6)':
     dependencies:
       '@types/json-schema': 7.0.15
       esbuild: 0.20.2
       esbuild-runner: 2.2.2(esbuild@0.20.2)
-      valibot: 0.30.0
+      valibot: 0.31.0-rc.6
 
   '@isaacs/cliui@8.0.2':
     dependencies:
@@ -1977,6 +1983,8 @@ snapshots:
   universalify@2.0.1: {}
 
   valibot@0.30.0: {}
+
+  valibot@0.31.0-rc.6: {}
 
   vite-node@1.6.0(@types/node@20.12.12):
     dependencies:
