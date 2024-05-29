@@ -1,6 +1,6 @@
 {
   "name": "@nokijs/server",
-  "module": "index.ts",
+  "version": "0.0.1-alpha.0",
   "type": "module",
   "exports": {
     ".": {
