@@ -1,3 +1,4 @@
+import type { BaseContext } from "./context";
 import { Route } from "./route";
 import type {
   AnyOutput,
@@ -13,7 +14,6 @@ import type {
   ResponseTypes,
   ValidationSchemas,
 } from "./types";
-import type { BaseContext } from "./utils/context";
 
 export class RouteBuilder<
   TContext extends BaseContext = BaseContext,

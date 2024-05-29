@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { ResponseBuilder } from "../response";
+
 import { buildContext } from "./context";
+import { ResponseBuilder } from "./response";
 
 describe("buildContext", () => {
   it("should return an object with cookies and headers", () => {
@@ -13,10 +14,8 @@ describe("buildContext", () => {
 
     const context = buildContext(request);
 
-    expect(context.cookies).toEqual({
-      key1: "value1",
-      key2: "value2",
-    });
+    expect(context.getCookie("key1")).toBe("value1");
+    expect(context.getCookie("key2")).toBe("value2");
     expect(context.headers).toEqual({
       cookie: "key1=value1; key2=value2",
       "other-header": "value",
@@ -32,7 +31,7 @@ describe("buildContext", () => {
 
     const context = buildContext(request);
 
-    expect(context.cookies).toEqual({});
+    expect(context.getCookie("key1")).toBeUndefined();
     expect(context.headers).toEqual({
       "other-header": "value",
     });

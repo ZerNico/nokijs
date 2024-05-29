@@ -1,9 +1,20 @@
 import type { ResponseTypes } from "./types";
+import { type CookieOptions, serializeCookie } from "./utils/cookie";
+import { joinHeaders } from "./utils/headers";
 
 export class ResponseBuilder {
-  public headers: Record<string, string> = {};
+  public headers = new Headers();
   public status = 200;
   public statusText?: string;
+
+  public setCookie(name: string, value: string, opts?: CookieOptions) {
+    const cookie = serializeCookie(name, value, opts);
+    this.headers.append("set-cookie", cookie);
+  }
+
+  public deleteCookie(name: string) {
+    this.setCookie(name, "", { maxAge: -1 });
+  }
 
   public text(text: string, opts?: ResponseInit) {
     return new TypedResponse(text, this.generateOpts("text/plain", opts));
@@ -14,11 +25,10 @@ export class ResponseBuilder {
   }
 
   private generateOpts(contentType: string, opts?: ResponseInit): ResponseInit {
-    const headers = new Headers(opts?.headers);
+    const headers = joinHeaders(this.headers, opts?.headers);
 
-    for (const [key, value] of Object.entries({ "content-type": contentType, ...this.headers })) {
-      if (headers.has(key)) continue;
-      headers.set(key, value);
+    if (!headers.has("content-type")) {
+      headers.set("content-type", contentType);
     }
 
     return { status: this.status, statusText: this.statusText, ...opts, headers: headers };

@@ -1,11 +1,12 @@
+import { rimraf } from "rimraf";
 import type { RollupOptions } from "rollup";
 import typescript from "rollup-plugin-typescript2";
 
-interface Config {
-  "config-clean"?: boolean;
-}
+export default async (): Promise<RollupOptions> => {
+  if (!process.env.ROLLUP_WATCH) {
+    rimraf("./dist");
+  }
 
-export default async (env: Config): Promise<RollupOptions> => {
   return {
     input: "./src/index.ts",
     output: [
@@ -15,6 +16,15 @@ export default async (env: Config): Promise<RollupOptions> => {
         preserveModules: true,
       },
     ],
-    plugins: [typescript()],
+    plugins: [
+      typescript({
+        tsconfigOverride: {
+          exclude: ["src/**/*.test.ts"],
+        },
+      }),
+    ],
+    watch: {
+      clearScreen: false,
+    },
   };
 };

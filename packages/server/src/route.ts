@@ -1,8 +1,8 @@
 import { getQuery } from "ufo";
 import type { MaybePromise } from "valibot";
+import { buildContext } from "./context";
 import type { Handler, Inputs, PossibleResponse, ResponseTypes, ValidationSchemas } from "./types";
 import { parseBody } from "./utils/body";
-import { buildContext } from "./utils/context";
 import { validate } from "./utils/validator";
 
 export class Route<

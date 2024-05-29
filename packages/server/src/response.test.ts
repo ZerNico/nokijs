@@ -35,7 +35,7 @@ describe("ResponseBuilder", () => {
     const builder = new ResponseBuilder();
     builder.status = 404;
     builder.statusText = "Not Found";
-    builder.headers = { "x-test": "test" };
+    builder.headers = new Headers({ "x-test": "test" });
 
     const response = builder.text("Hello, World!");
     expect(response.status).toBe(404);
@@ -46,15 +46,25 @@ describe("ResponseBuilder", () => {
     expect(headers.get("content-type")).toBe("text/plain");
   });
 
-  it("should override the pre defined headers", () => {
-    const builder = new ResponseBuilder();
-    builder.headers["content-type"] = "application/json";
+  it("should set a cookie", () => {
+    const response = new ResponseBuilder();
+    response.setCookie("key", "value");
 
-    const response = builder.text("Hello, World!", {
-      headers: { "content-type": "text/plain" },
-    });
-    const headers = new Headers(response.headers);
-    expect(headers.get("content-type")).toBe("text/plain");
+    expect(response.headers.get("set-cookie")).toBe("key=value");
+  });
+
+  it("should set a cookie with options", () => {
+    const response = new ResponseBuilder();
+    response.setCookie("key", "value", { maxAge: 60 });
+
+    expect(response.headers.get("set-cookie")).toBe("key=value; Max-Age=60");
+  });
+
+  it("should delete a cookie", () => {
+    const response = new ResponseBuilder();
+    response.deleteCookie("key");
+
+    expect(response.headers.get("set-cookie")).toBe("key=; Max-Age=-1");
   });
 });
 

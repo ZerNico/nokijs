@@ -17,3 +17,48 @@ export function parseCookie(cookie: string) {
 
   return cookies;
 }
+
+export function serializeCookie(name: string, value: string, options: CookieOptions = {}) {
+  let cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
+
+  if (options.expires) {
+    cookie += `; Expires=${options.expires.toUTCString()}`;
+  }
+
+  if (options.maxAge) {
+    cookie += `; Max-Age=${options.maxAge}`;
+  }
+
+  if (options.domain) {
+    cookie += `; Domain=${options.domain}`;
+  }
+
+  if (options.path) {
+    cookie += `; Path=${options.path}`;
+  }
+
+  if (options.secure) {
+    cookie += "; Secure";
+  }
+
+  if (options.httpOnly) {
+    cookie += "; HttpOnly";
+  }
+
+  if (options.sameSite) {
+    cookie += `; SameSite=${options.sameSite}`;
+  }
+
+  return cookie;
+}
+
+export type CookieOptions = {
+  domain?: string;
+  expires?: Date;
+  httpOnly?: boolean;
+  maxAge?: number;
+  path?: string;
+  secure?: boolean;
+  signingSecret?: string;
+  sameSite?: "Strict" | "Lax" | "None" | "strict" | "lax" | "none";
+};
