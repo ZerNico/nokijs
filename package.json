@@ -13,9 +13,5 @@
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
-  },
-  "workspaces": [
-    "packages/*",
-    "examples/*"
-  ]
+  }
 }

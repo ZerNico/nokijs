@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { an } from "vitest/dist/reporters-LqC_WI4d.js";
 import { NokiClientError } from "./error";
 import type { TypedResponse } from "./types";
 

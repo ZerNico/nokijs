@@ -13,7 +13,6 @@
   "sideEffects": false,
   "devDependencies": {
     "@nokijs/server": "workspace:*",
-    "@types/bun": "latest",
     "@vitest/coverage-v8": "^1.5.2",
     "rollup": "^4.13.2",
     "rollup-plugin-typescript2": "^0.36.0",

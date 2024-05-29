@@ -12,11 +12,10 @@
   },
   "sideEffects": false,
   "devDependencies": {
-    "@types/bun": "latest",
     "rollup": "^4.13.2",
     "rollup-plugin-typescript2": "^0.36.0",
-    "vitest": "^1.5.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^1.5.0"
   },
   "scripts": {
     "build": "rollup --config rollup.config.ts --configPlugin typescript2",
