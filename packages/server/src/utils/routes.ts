@@ -17,6 +17,7 @@ export function groupRoutes<const TRoutes extends AnyRoute[], const TPrefix exte
           fn: route.fn,
           handler: route.handler,
           validationSchemas: route.validationSchemas,
+          errorHandler: route.errorHandler,
         }),
       );
     }

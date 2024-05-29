@@ -1,4 +1,5 @@
 import { Noki, RouteBuilder, groupRoutes } from "@nokijs/server";
+import * as v from "valibot";
 
 const baseRoute = new RouteBuilder().error((e, { res }) => {
   return res.json({ error: "Test" }, { status: 500 });
@@ -7,6 +8,7 @@ const baseRoute = new RouteBuilder().error((e, { res }) => {
 const routes = groupRoutes(
   [
     baseRoute
+      .body(v.object({ name: v.string() }))
       .derive(() => {
         return { greeting: "Hello there," };
       })

@@ -22,4 +22,14 @@ describe("groupRoutes", () => {
       expect(result[i]!.path).toEqual(expectedPath);
     }
   });
+
+  it("should copy all opts from the original routes", () => {
+    const result = groupRoutes(mockRoutes, { prefix: "/api" });
+
+    expect(result[0]!.method).toEqual(mockRoutes[0]!.method);
+    expect(result[0]!.fn).toEqual(mockRoutes[0]!.fn);
+    expect(result[0]!.handler).toEqual(mockRoutes[0]!.handler);
+    expect(result[0]!.validationSchemas).toEqual(mockRoutes[0]!.validationSchemas);
+    expect(result[0]!.errorHandler).toEqual(mockRoutes[0]!.errorHandler);
+  });
 });
