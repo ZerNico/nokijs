@@ -434,18 +434,21 @@ describe("Route", () => {
   });
 
   it("should use a custom error handler if provided", async () => {
+    const errorHandler = vi.fn((error) => new Response("Test", { status: 400 }));
+
     const route = new Route({
       method: "GET",
       path: "/",
       fn: () => {
         throw new Error("An error occurred");
       },
-      errorHandler: (error) => new Response("Test", { status: 400 }),
+      errorHandler,
     });
 
     const response = (await route.handle(new Request("https://localhost:3000", { method: "GET" }), {})) as Response;
 
     expect(response.status).toBe(400);
     expect(response.text()).resolves.toBe("Test");
+    expect(errorHandler).toHaveBeenCalledWith(expect.any(Error), expect.objectContaining({ raw: expect.any(Request) }));
   });
 });

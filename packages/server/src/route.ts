@@ -36,9 +36,8 @@ export class Route<
   }
 
   public async handle(request: Request, params: Record<string, string | undefined>) {
+    let context: Record<string, any> = { ...buildContext(request), params };
     try {
-      let context: Record<string, any> = { ...buildContext(request), params };
-
       for (const handler of this.handler || []) {
         if (handler.type === "derive") {
           context = { ...context, ...handler.fn(context) };
@@ -72,7 +71,7 @@ export class Route<
 
       return response;
     } catch (error) {
-      return this.errorHandler(error, {});
+      return this.errorHandler(error, context);
     }
   }
 }
