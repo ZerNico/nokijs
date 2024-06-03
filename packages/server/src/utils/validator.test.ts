@@ -1,5 +1,5 @@
 import * as v from "valibot";
-import { assertType, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { validate } from "./validator";
 
 describe("validate", () => {

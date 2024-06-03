@@ -1,4 +1,4 @@
-import type { BaseSchema, BaseSchemaAsync, Output } from "valibot";
+import type { GenericSchema, GenericSchemaAsync, InferInput, InferOutput, SafeParseResult } from 'valibot'
 import type { TypedResponse } from "./response";
 import type { Route } from "./route";
 
@@ -52,11 +52,10 @@ export type ValidationSchemas = Partial<Record<ValidationKeys, AnySchema>>;
 
 export type AnyRoute = Route<any, any, any, any, any>;
 
-export type AnySchema = BaseSchema | BaseSchemaAsync;
-export type AnyOutput<Schema extends AnySchema> = Output<Schema>;
+export type AnySchema = GenericSchema | GenericSchemaAsync;
 
 export type ValidationSchemasToOutput<T extends ValidationSchemas> = {
-  [K in keyof T]: T[K] extends AnySchema ? AnyOutput<T[K]> : never;
+  [K in keyof T]: T[K] extends AnySchema ? InferOutput<T[K]> : never;
 };
 
 export type ResponseTypes = string | Record<string, any>;

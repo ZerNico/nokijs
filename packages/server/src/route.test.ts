@@ -205,7 +205,7 @@ describe("Route", () => {
         },
       ],
       validationSchemas: {
-        body: v.string([v.maxLength(1)]),
+        body: v.pipe(v.string(), v.maxLength(1)),
       },
     });
 
