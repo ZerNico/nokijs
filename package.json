@@ -9,9 +9,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.6.3",
-    "turbo": "^1.13.0"
+    "turbo": "^2.0.1"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
-  }
+  },
+  "packageManager": "pnpm@9.1.3"
 }
