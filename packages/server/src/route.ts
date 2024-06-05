@@ -40,7 +40,7 @@ export class Route<
     try {
       for (const handler of this.handler || []) {
         if (handler.type === "derive") {
-          context = { ...context, ...handler.fn(context) };
+          context = { ...context, ...(await handler.fn(context)) };
         } else if (handler.type === "before") {
           const response = await handler.fn(context);
           if (response) {

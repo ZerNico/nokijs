@@ -48,6 +48,25 @@ describe("Route", () => {
     expect(mockFn).toHaveBeenCalledWith(expect.objectContaining({ foo: "bar" }));
   });
 
+  it("handles async derive handlers", async () => {
+    const mockFn = vi.fn(() => Promise.resolve(new Response("Hello, World!")));
+
+    const route = new Route({
+      method: "GET",
+      path: "/",
+      fn: mockFn,
+      handler: [
+        {
+          type: "derive",
+          fn: async () => ({ foo: "bar" }),
+        },
+      ],
+    });
+
+    await route.handle(new Request("https://localhost:3000", { method: "GET" }), {});
+    expect(mockFn).toHaveBeenCalledWith(expect.objectContaining({ foo: "bar" }));
+  });
+
   it("handles before handlers", async () => {
     const mockFn = vi.fn(() => Promise.resolve(new Response("Hello, World!")));
 

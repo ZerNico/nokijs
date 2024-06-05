@@ -29,7 +29,7 @@ export class RouteBuilder<
   ) {}
 
   public derive<Derived extends Record<string, any>>(fn: (context: Prettify<TContext>) => Derived) {
-    return new RouteBuilder<TContext & Derived, TInputs, TErrorResponse>({
+    return new RouteBuilder<TContext & Awaited<Derived>, TInputs, TErrorResponse>({
       ...this.opts,
       handler: [...(this.opts?.handler || []), { type: "derive", fn }],
     });
