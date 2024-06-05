@@ -1,7 +1,7 @@
+import type { InferOutput } from "valibot";
 import type { BaseContext } from "./context";
 import { Route } from "./route";
 import type {
-  AnyOutput,
   AnySchema,
   DefaultInputs,
   GetPathParameters,
@@ -42,8 +42,8 @@ export class RouteBuilder<
     filteredHandler.push({ type: "validate", key: "body" });
 
     return new RouteBuilder<
-      Prettify<Omit<TContext, "body"> & { body: AnyOutput<Schema> }>,
-      Prettify<Omit<TInputs, "body"> & { body: AnyOutput<Schema> }>,
+      Prettify<Omit<TContext, "body"> & { body: InferOutput<Schema> }>,
+      Prettify<Omit<TInputs, "body"> & { body: InferOutput<Schema> }>,
       TErrorResponse
     >({
       ...this.opts,
@@ -59,8 +59,8 @@ export class RouteBuilder<
     filteredHandler.push({ type: "validate", key: "query" });
 
     return new RouteBuilder<
-      Prettify<Omit<TContext, "query"> & { query: AnyOutput<Schema> }>,
-      Prettify<Omit<TInputs, "query"> & { query: AnyOutput<Schema> }>,
+      Prettify<Omit<TContext, "query"> & { query: InferOutput<Schema> }>,
+      Prettify<Omit<TInputs, "query"> & { query: InferOutput<Schema> }>,
       TErrorResponse
     >({
       ...this.opts,
