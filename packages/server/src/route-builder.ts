@@ -35,32 +35,32 @@ export class RouteBuilder<
     });
   }
 
-  public body<Schema extends AnySchema>(schema: Schema) {
+  public body<TSchema extends AnySchema>(schema: TSchema | ((context: Prettify<TContext>) => TSchema)) {
     const filteredHandler =
       this.opts?.handler?.filter((handler) => !(handler.type === "validate" && handler.key === "body")) ?? [];
 
     filteredHandler.push({ type: "validate", key: "body" });
 
     return new RouteBuilder<
-      Prettify<Omit<TContext, "body"> & { body: InferOutput<Schema> }>,
-      Prettify<Omit<TInputs, "body"> & { body: InferOutput<Schema> }>,
+      Prettify<Omit<TContext, "body"> & { body: InferOutput<TSchema> }>,
+      Prettify<Omit<TInputs, "body"> & { body: InferOutput<TSchema> }>,
       TErrorResponse
     >({
       ...this.opts,
       handler: filteredHandler,
-      validationSchemas: { ...(this.opts?.validationSchemas || {}), body: schema } as any,
+      validationSchemas: { ...(this.opts?.validationSchemas || {}), body: schema },
     });
   }
 
-  public query<Schema extends AnySchema>(schema: Schema) {
+  public query<TSchema extends AnySchema>(schema: TSchema | ((context: Prettify<TContext>) => TSchema)) {
     const filteredHandler =
       this.opts?.handler?.filter((handler) => !(handler.type === "validate" && handler.key === "query")) ?? [];
 
     filteredHandler.push({ type: "validate", key: "query" });
 
     return new RouteBuilder<
-      Prettify<Omit<TContext, "query"> & { query: InferOutput<Schema> }>,
-      Prettify<Omit<TInputs, "query"> & { query: InferOutput<Schema> }>,
+      Prettify<Omit<TContext, "query"> & { query: InferOutput<TSchema> }>,
+      Prettify<Omit<TInputs, "query"> & { query: InferOutput<TSchema> }>,
       TErrorResponse
     >({
       ...this.opts,

@@ -49,11 +49,20 @@ export class Route<
         } else if (handler.type === "validate") {
           if (handler.key === "body" && this.validationSchemas?.body) {
             const body = await parseBody(request);
+            const schema =
+              typeof this.validationSchemas.body === "function"
+                ? this.validationSchemas.body(context)
+                : this.validationSchemas.body;
 
-            context = { ...context, body: await validate(this.validationSchemas.body, body) };
+            context = { ...context, body: await validate(schema, body) };
           } else if (handler.key === "query" && this.validationSchemas?.query) {
             const query = getQuery(request.url);
-            context = { ...context, query: await validate(this.validationSchemas.query, query) };
+            const schema =
+              typeof this.validationSchemas.query === "function"
+                ? this.validationSchemas.query(context)
+                : this.validationSchemas.query;
+
+            context = { ...context, query: await validate(schema, query) };
           }
         }
       }

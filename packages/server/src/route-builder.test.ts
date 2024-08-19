@@ -34,6 +34,13 @@ describe("RouteBuilder", () => {
       expect(routeBuilder.opts?.validationSchemas?.body).toBe(schema);
       expect(routeBuilder.opts?.validationSchemas?.body).not.toBe(replacedSchema);
     });
+
+    it("should allow setting the validation schema via a function", () => {
+      const schema = v.string();
+      const routeBuilder = new RouteBuilder().body(() => schema);
+
+      expect((routeBuilder.opts?.validationSchemas?.body! as any)({})).toBe(schema);
+    });
   });
 
   describe("query", () => {
@@ -54,6 +61,13 @@ describe("RouteBuilder", () => {
       expect(routeBuilder.opts?.handler?.[0]).toEqual({ type: "validate", key: "query" });
       expect(routeBuilder.opts?.validationSchemas?.query).toBe(schema);
       expect(routeBuilder.opts?.validationSchemas?.query).not.toBe(replacedSchema);
+    });
+
+    it("should allow setting the validation schema via a function", () => {
+      const schema = v.string();
+      const routeBuilder = new RouteBuilder().query(() => schema);
+
+      expect((routeBuilder.opts?.validationSchemas?.query! as any)({})).toBe(schema);
     });
   });
 

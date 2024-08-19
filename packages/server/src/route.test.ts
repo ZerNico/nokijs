@@ -177,6 +177,41 @@ describe("Route", () => {
     expect(response.text()).resolves.toBe("Invalid type: Expected number but received undefined");
   });
 
+  it("handles wrong body input using a schema set via a function", async () => {
+    const mockFn = vi.fn(() => Promise.resolve(new Response("Hello, World!")));
+
+    const route = new Route({
+      method: "GET",
+      path: "/",
+      fn: mockFn,
+      handler: [
+        {
+          type: "validate",
+          key: "body",
+        },
+      ],
+      validationSchemas: {
+        body: () =>
+          v.object({
+            foo: v.number(),
+          }),
+      },
+    });
+
+    const response = (await route.handle(
+      new Request("https://localhost:3000", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ bar: "foo" }),
+      }),
+      {},
+    )) as Response;
+
+    expect(response.text()).resolves.toBe("Invalid type: Expected number but received undefined");
+  });
+
   it("handles validate handlers for text body", async () => {
     const mockFn = vi.fn(() => Promise.resolve(new Response("Hello, World!")));
 
@@ -426,6 +461,35 @@ describe("Route", () => {
         query: v.object({
           foo: v.number(),
         }),
+      },
+    });
+
+    const response = (await route.handle(
+      new Request("https://localhost:3000?foo=bar", { method: "GET" }),
+      {},
+    )) as Response;
+
+    expect(response.text()).resolves.toBe('Invalid type: Expected number but received "bar"');
+  });
+
+  it("handles wrong query input using a schema set via a function", async () => {
+    const mockFn = vi.fn(() => Promise.resolve(new Response("Hello, World!")));
+
+    const route = new Route({
+      method: "GET",
+      path: "/",
+      fn: mockFn,
+      handler: [
+        {
+          type: "validate",
+          key: "query",
+        },
+      ],
+      validationSchemas: {
+        query: () =>
+          v.object({
+            foo: v.number(),
+          }),
       },
     });
 

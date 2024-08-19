@@ -48,7 +48,7 @@ export type InferResponse<T extends Response | TypedResponse<any> | void> = T ex
 export type ValidationKeys = "body" | "query";
 export type Inputs = Record<ValidationKeys, any>;
 export type DefaultInputs = Record<ValidationKeys, never>;
-export type ValidationSchemas = Partial<Record<ValidationKeys, AnySchema>>;
+export type ValidationSchemas = Partial<Record<ValidationKeys, AnySchema | ((context: any) => AnySchema)>>;
 
 export type AnyRoute = Route<any, any, any, any, any>;
 
