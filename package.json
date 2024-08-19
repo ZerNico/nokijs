@@ -5,7 +5,8 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev --parallel --force",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "publish": "turbo run build && pnpm publish -r --access public"
   },
   "devDependencies": {
     "@biomejs/biome": "1.6.3",
