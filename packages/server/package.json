@@ -12,12 +12,12 @@
   },
   "sideEffects": false,
   "devDependencies": {
-    "@vitest/coverage-v8": "^1.5.2",
-    "rimraf": "^5.0.7",
-    "rollup": "^4.13.2",
+    "@vitest/coverage-v8": "^2.0.5",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.21.0",
     "rollup-plugin-typescript2": "^0.36.0",
-    "typescript": "^5.0.0",
-    "vitest": "^1.5.0"
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
   },
   "scripts": {
     "build": "rollup --config rollup.config.ts --configPlugin typescript2",
@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "memoirist": "^0.1.10",
-    "ufo": "^1.5.3",
-    "valibot": "0.31.0-rc.10"
+    "ufo": "^1.5.4",
+    "valibot": "0.37.0"
   }
 }

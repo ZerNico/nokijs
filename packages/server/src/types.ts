@@ -1,4 +1,4 @@
-import type { GenericSchema, GenericSchemaAsync, InferInput, InferOutput, SafeParseResult } from 'valibot'
+import type { GenericSchema, GenericSchemaAsync, InferInput, InferOutput, SafeParseResult } from "valibot";
 import type { TypedResponse } from "./response";
 import type { Route } from "./route";
 

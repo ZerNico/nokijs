@@ -7,11 +7,10 @@
     "dev": "bun --watch --hot src/index.ts"
   },
   "dependencies": {
-    "@gcornut/valibot-json-schema": "^0.0.27",
     "@nokijs/client": "workspace:*",
     "@nokijs/server": "workspace:*",
-    "@typeschema/main": "^0.13.8",
-    "valibot": "0.30.0"
+    "@typeschema/main": "^0.13.10",
+    "valibot": "0.37.0"
   },
   "devDependencies": {
     "@types/bun": "latest"
