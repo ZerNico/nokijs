@@ -28,8 +28,10 @@ export class RouteBuilder<
     },
   ) {}
 
-  public derive<Derived extends Record<string, any>>(fn: (context: Prettify<TContext>) => Derived) {
-    return new RouteBuilder<TContext & Awaited<Derived>, TInputs, TErrorResponse>({
+  public derive<Derived extends Record<string, any>>(fn: (context: Prettify<TContext>) => MaybePromise<Derived>) {
+    type OverwrittenContext = Omit<TContext, keyof Awaited<Derived>> & Awaited<Derived> & BaseContext;
+
+    return new RouteBuilder<OverwrittenContext, TInputs, TErrorResponse>({
       ...this.opts,
       handler: [...(this.opts?.handler || []), { type: "derive", fn }],
     });
