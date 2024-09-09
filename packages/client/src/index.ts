@@ -4,7 +4,7 @@ import { NokiClientError } from "./error";
 import type { Client } from "./types";
 import { buildTypedResponse, detectRequestContentType } from "./utils";
 
-export const client = <const TNoki extends Noki<any>>(domain: string): Client<TNoki> => {
+export const client = <const TNoki extends Noki<any>, TBasePath extends string = "">(domain: string): Client<TNoki, TBasePath> => {
   return createProxy(domain);
 };
 

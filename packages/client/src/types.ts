@@ -2,10 +2,10 @@ import type { AnyRoute, GetPathParameters, Noki, Route } from "@nokijs/server";
 import type { QueryObject } from "ufo";
 import type { NokiClientError } from "./error";
 
-export type Client<TNoki extends Noki<any>> = TNoki extends Noki<infer TRoutes>
+export type Client<TNoki extends Noki<any>, TBasePath extends string = ""> = TNoki extends Noki<infer TRoutes>
   ? UnionToIntersection<
       {
-        [I in keyof TRoutes]: PathToChain<TRoutes[I]["path"], TRoutes[I]>;
+        [I in keyof TRoutes]: PathToChain<StripPrefix<TRoutes[I]["path"], TBasePath>, TRoutes[I]>;
       }[number]
     >
   : never;
@@ -21,6 +21,8 @@ type PathToChain<
     : {
         [K in TPath extends "" ? "index" : TPath]: ClientRequest<TRoute>;
       };
+
+type StripPrefix<Path extends string, Prefix extends string> = Path extends `${Prefix}${infer Rest}` ? Rest : Path;
 
 type ClientRequest<TRoute extends AnyRoute> = Prettify<
   {
