@@ -27,20 +27,30 @@ type StripPrefix<Path extends string, Prefix extends string> = Path extends `${P
 type ClientRequest<TRoute extends AnyRoute> = Prettify<
   {
     [K in Lowercase<TRoute["method"]>]: (
-      opts: Prettify<
-        OmitNever<
-          {
-            query?: QueryObject;
-            params: GetPathParameters<TRoute["path"]>;
-          } & InferInputs<TRoute>
-        >
-      >,
+      opts: InferClientRequestOptions<TRoute>,
     ) => Promise<Prettify<TypedResponse<InferResponse<TRoute>>>>;
   } & {
     isNokiError: (error: unknown) => error is NokiClientError<TypedResponse<InferErrorResponse<TRoute>>>;
   }
 >;
 
+type InferClientRequestOptions<TRoute extends AnyRoute> = Prettify<
+  OmitNever<
+    {
+      query?: QueryObject;
+      params: GetPathParameters<TRoute["path"]>;
+    } & InferInputs<TRoute>
+  >
+> extends Record<string, never>
+  ? void
+  : Prettify<
+      OmitNever<
+        {
+          query?: QueryObject;
+          params: GetPathParameters<TRoute["path"]>;
+        } & InferInputs<TRoute>
+      >
+    >;
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
 type OmitNever<T> = Pick<T, { [K in keyof T]: T[K] extends never ? never : K }[keyof T]>;
 type Prettify<T> = { [K in keyof T]: T[K] } & {};
