@@ -1,4 +1,4 @@
-import type { InferOutput } from "valibot";
+import type { InferInput, InferOutput } from "valibot";
 import type { BaseContext } from "./context";
 import { Route } from "./route";
 import type {
@@ -45,7 +45,7 @@ export class RouteBuilder<
 
     return new RouteBuilder<
       Prettify<Omit<TContext, "body"> & { body: InferOutput<TSchema> }>,
-      Prettify<Omit<TInputs, "body"> & { body: InferOutput<TSchema> }>,
+      Prettify<Omit<TInputs, "body"> & { body: InferInput<TSchema> }>,
       TErrorResponse
     >({
       ...this.opts,
@@ -62,7 +62,7 @@ export class RouteBuilder<
 
     return new RouteBuilder<
       Prettify<Omit<TContext, "query"> & { query: InferOutput<TSchema> }>,
-      Prettify<Omit<TInputs, "query"> & { query: InferOutput<TSchema> }>,
+      Prettify<Omit<TInputs, "query"> & { query: InferInput<TSchema> }>,
       TErrorResponse
     >({
       ...this.opts,
