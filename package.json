@@ -4,7 +4,9 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "stub": "turbo run stub"
+    "stub": "turbo run stub",
+    "publish:npm": "turbo run build && pnpm publish -r --access public",
+    "publish:jsr": "turbo run publish:jsr"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.1",

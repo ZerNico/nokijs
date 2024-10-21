@@ -11,6 +11,9 @@
     "stub": {
       "dependsOn": ["^stub"],
       "cache": false
+    },
+    "publish:jsr": {
+      "dependsOn": ["^publish:jsr"]
     }
   },
   "ui": "tui"

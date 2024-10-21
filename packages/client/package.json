@@ -19,7 +19,8 @@
     "dev": "vitest --typecheck",
     "test": "vitest run --typecheck",
     "test:coverage": "vitest run --typecheck --coverage",
-    "stub": "unbuild --stub"
+    "stub": "unbuild --stub",
+    "publish:jsr": "pnpm dlx jsr publish"
   },
   "devDependencies": {
     "@types/node": "^22.5.5",

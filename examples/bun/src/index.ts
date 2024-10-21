@@ -1,5 +1,5 @@
 import { client } from "@nokijs/client";
-import { Noki, RouteBuilder } from "@nokijs/server";
+import { Noki, RouteBuilder, groupRoutes } from "@nokijs/server";
 import { object, string } from "valibot";
 
 const baseRoute = new RouteBuilder();
@@ -20,7 +20,9 @@ const route = baseRoute
     return res.json({ message: "Hello, World!" });
   });
 
-const noki = new Noki([route]);
+const routes = groupRoutes([route]);
+
+const noki = new Noki(routes);
 
 const server = Bun.serve({
   fetch: noki.fetch,
