@@ -1,61 +1,50 @@
-import type { GenericSchema, GenericSchemaAsync, InferInput, InferOutput, SafeParseResult } from "valibot";
+import type { BaseSchema, GenericSchema, GenericSchemaAsync } from "valibot";
 import type { TypedResponse } from "./response";
-import type { Route } from "./route";
 
+export type MaybePromise<T> = T | Promise<T>;
 export type Prettify<T> = {
   [K in keyof T]: T[K];
 } & {};
 
+export type ValidationKeys = "body" | "query";
+
+export type DeriveHandler = {
+  type: "derive";
+  fn: (context: any) => MaybePromise<Record<string, any> | void>;
+};
+export type ValidateHandler = {
+  type: "validate";
+  schema: AnySchema;
+  key: ValidationKeys;
+};
+export type BeforeHandler = {
+  type: "before";
+  fn: (context: any) => MaybePromise<SomeResponse | void>;
+};
+export type Handler = DeriveHandler | ValidateHandler | BeforeHandler;
+
+export type SomeResponse = Response | TypedResponse<any, any>;
+export type AnySchema = GenericSchema | GenericSchemaAsync;
+
+/* Thanks @SaltyAom <3 */
 type IsPathParameter<Part extends string> = Part extends `:${infer Parameter}`
   ? Parameter
   : Part extends `*`
     ? "*"
     : never;
+export type GetPathParameter<Path extends string> =
+  Path extends `${infer A}/${infer B}`
+    ? IsPathParameter<A> | GetPathParameter<B>
+    : IsPathParameter<Path>;
 
-export type GetPathParameterUnion<Path extends string> = Path extends `${infer A}/${infer B}`
-  ? IsPathParameter<A> | GetPathParameterUnion<B>
-  : IsPathParameter<Path>;
-
-export type GetPathParameters<Path extends string> = Prettify<
-  Path extends `${string}/${":" | "*"}${string}` ? Record<GetPathParameterUnion<Path>, string> : never
+export type ResolvePath<Path extends string> = Prettify<
+  {
+    [Param in GetPathParameter<Path> as Param extends `${string}?`
+      ? never
+      : Param]: string;
+  } & {
+    [Param in GetPathParameter<Path> as Param extends `${infer OptionalParam}?`
+      ? OptionalParam
+      : never]?: string;
+  }
 >;
-
-export type MaybePromise<T> = T | Promise<T>;
-
-export type PossibleResponse = Response | TypedResponse<any>;
-
-export type Handler =
-  | { type: "derive"; fn: (context: any) => any }
-  | {
-      type: "before";
-      fn: (context: any) => MaybePromise<PossibleResponse | void>;
-    }
-  | {
-      type: "after";
-      fn: (response: PossibleResponse, context: any) => MaybePromise<PossibleResponse | void>;
-    }
-  | {
-      type: "validate";
-      key: ValidationKeys;
-    };
-
-export type InferResponse<T extends Response | TypedResponse<any> | void> = T extends TypedResponse<infer Body>
-  ? Body
-  : T extends Response
-    ? unknown
-    : void;
-
-export type ValidationKeys = "body" | "query";
-export type Inputs = Record<ValidationKeys, any>;
-export type DefaultInputs = Record<ValidationKeys, never>;
-export type ValidationSchemas = Partial<Record<ValidationKeys, AnySchema | ((context: any) => AnySchema)>>;
-
-export type AnyRoute = Route<any, any, any, any, any>;
-
-export type AnySchema = GenericSchema | GenericSchemaAsync;
-
-export type ValidationSchemasToOutput<T extends ValidationSchemas> = {
-  [K in keyof T]: T[K] extends AnySchema ? InferOutput<T[K]> : never;
-};
-
-export type ResponseTypes = string | Record<string, any>;

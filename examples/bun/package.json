@@ -1,7 +1,6 @@
 {
-  "name": "bun-example",
+  "name": "example-bun",
   "private": true,
-  "module": "index.ts",
   "type": "module",
   "scripts": {
     "dev": "bun --watch --hot src/index.ts"
@@ -9,13 +8,9 @@
   "dependencies": {
     "@nokijs/client": "workspace:*",
     "@nokijs/server": "workspace:*",
-    "@typeschema/main": "^0.13.10",
-    "valibot": "0.37.0"
+    "valibot": "1.0.0-beta.1"
   },
   "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
+    "@types/bun": "^1.1.9"
   }
 }

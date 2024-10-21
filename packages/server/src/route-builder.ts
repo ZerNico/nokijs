@@ -1,157 +1,207 @@
 import type { InferInput, InferOutput } from "valibot";
 import type { BaseContext } from "./context";
+import type { TypedResponse } from "./response";
 import { Route } from "./route";
 import type {
   AnySchema,
-  DefaultInputs,
-  GetPathParameters,
   Handler,
-  InferResponse,
-  Inputs,
   MaybePromise,
-  PossibleResponse,
   Prettify,
-  ResponseTypes,
-  ValidationSchemas,
+  ResolvePath,
+  SomeResponse,
+  ValidationKeys,
 } from "./types";
 
 export class RouteBuilder<
-  TContext extends BaseContext = BaseContext,
-  TInputs extends Inputs = DefaultInputs,
-  TErrorResponse extends ResponseTypes = string,
+  TContext extends Record<string, any> = Prettify<BaseContext>,
+  TInputs extends Partial<Record<ValidationKeys, unknown>> = Record<
+    ValidationKeys,
+    never
+  >,
+  TErrorResponse extends SomeResponse = TypedResponse<string, 500>,
+  TResponses extends SomeResponse = never,
 > {
   constructor(
-    public opts?: {
-      handler?: Handler[];
-      validationSchemas?: ValidationSchemas;
-      errorHandler?: (error: unknown, context: any) => MaybePromise<PossibleResponse>;
+    public opts: {
+      handlers: Handler[];
+      errorHandler?: (
+        error: unknown,
+        context: any,
+      ) => MaybePromise<TErrorResponse>;
+    } = {
+      handlers: [],
     },
   ) {}
 
-  public derive<Derived extends Record<string, any>>(fn: (context: Prettify<TContext>) => MaybePromise<Derived>) {
-    type OverwrittenContext = Omit<TContext, keyof Awaited<Derived>> & Awaited<Derived> & BaseContext;
-
-    return new RouteBuilder<OverwrittenContext, TInputs, TErrorResponse>({
+  public derive<TDerived extends Record<string, any> | void>(
+    fn: (context: TContext) => MaybePromise<TDerived>,
+  ): RouteBuilder<
+    Prettify<Omit<TContext, keyof TDerived> & TDerived>,
+    TInputs,
+    TErrorResponse,
+    TResponses
+  > {
+    return new RouteBuilder({
       ...this.opts,
-      handler: [...(this.opts?.handler || []), { type: "derive", fn }],
+      handlers: [...this.opts.handlers, { type: "derive", fn }],
     });
   }
 
-  public body<TSchema extends AnySchema>(schema: TSchema | ((context: Prettify<TContext>) => TSchema)) {
-    const filteredHandler =
-      this.opts?.handler?.filter((handler) => !(handler.type === "validate" && handler.key === "body")) ?? [];
-
-    filteredHandler.push({ type: "validate", key: "body" });
-
-    return new RouteBuilder<
-      Prettify<Omit<TContext, "body"> & { body: InferOutput<TSchema> }>,
-      Prettify<Omit<TInputs, "body"> & { body: InferInput<TSchema> }>,
-      TErrorResponse
-    >({
+  public before<const TResponse extends SomeResponse | void>(
+    fn: (context: TContext) => MaybePromise<TResponse>,
+  ): RouteBuilder<
+    TContext,
+    TInputs,
+    TErrorResponse,
+    TResponse extends SomeResponse ? TResponse | TResponses : TResponses
+  > {
+    return new RouteBuilder({
       ...this.opts,
-      handler: filteredHandler,
-      validationSchemas: { ...(this.opts?.validationSchemas || {}), body: schema },
+      handlers: [...this.opts.handlers, { type: "before", fn }],
     });
   }
 
-  public query<TSchema extends AnySchema>(schema: TSchema | ((context: Prettify<TContext>) => TSchema)) {
-    const filteredHandler =
-      this.opts?.handler?.filter((handler) => !(handler.type === "validate" && handler.key === "query")) ?? [];
+  public body<TSchema extends AnySchema>(
+    schema: TSchema,
+  ): RouteBuilder<
+    Prettify<Omit<TContext, "body"> & { body: InferOutput<TSchema> }>,
+    Prettify<Omit<TInputs, "body"> & { body: InferInput<TSchema> }>,
+    TErrorResponse,
+    TResponses
+  > {
+    const filteredHandlers = this.opts.handlers.filter(
+      (handler) => handler.type !== "validate" || handler.key !== "body",
+    );
 
-    filteredHandler.push({ type: "validate", key: "query" });
+    filteredHandlers.push({
+      type: "validate",
+      schema,
+      key: "body",
+    });
 
-    return new RouteBuilder<
-      Prettify<Omit<TContext, "query"> & { query: InferOutput<TSchema> }>,
-      Prettify<Omit<TInputs, "query"> & { query: InferInput<TSchema> }>,
-      TErrorResponse
-    >({
+    return new RouteBuilder({
       ...this.opts,
-      handler: filteredHandler,
-      validationSchemas: { ...(this.opts?.validationSchemas || {}), query: schema } as any,
+      handlers: filteredHandlers,
     });
   }
 
-  public before<const Return extends MaybePromise<PossibleResponse | void>>(
-    fn: (context: Prettify<TContext>) => Return,
-  ) {
-    return new RouteBuilder<TContext, TInputs, TErrorResponse>({
+  public query<TSchema extends AnySchema>(
+    schema: TSchema,
+  ): RouteBuilder<
+    Prettify<Omit<TContext, "query"> & { query: InferOutput<TSchema> }>,
+    Prettify<Omit<TInputs, "query"> & { query: InferInput<TSchema> }>,
+    TErrorResponse,
+    TResponses
+  > {
+    const filteredHandlers = this.opts.handlers.filter(
+      (handler) => handler.type !== "validate" || handler.key !== "query",
+    );
+
+    filteredHandlers.push({
+      type: "validate",
+      schema,
+      key: "query",
+    });
+
+    return new RouteBuilder({
       ...this.opts,
-      handler: [...(this.opts?.handler || []), { type: "before", fn }],
+      handlers: filteredHandlers,
     });
   }
 
-  public after<const Return extends MaybePromise<PossibleResponse | void>>(
-    fn: (response: PossibleResponse, context: Prettify<TContext>) => Return,
-  ) {
-    return new RouteBuilder<TContext, TInputs, TErrorResponse>({
-      ...this.opts,
-      handler: [...(this.opts?.handler || []), { type: "after", fn }],
-    });
-  }
-
-  public error<const Return extends MaybePromise<PossibleResponse>>(
-    fn: (error: unknown, context: Prettify<TContext>) => Return,
-  ) {
-    return new RouteBuilder<TContext, TInputs, InferResponse<Awaited<Return>>>({
+  public error<const TResponse extends SomeResponse>(
+    fn: (error: unknown, context: TContext) => MaybePromise<TResponse>,
+  ): RouteBuilder<TContext, TInputs, TResponse, TResponses> {
+    return new RouteBuilder({
       ...this.opts,
       errorHandler: fn,
     });
   }
 
-  public get<const TPath extends string, const TReturn extends MaybePromise<PossibleResponse>>(
+  public get<const TPath extends string, const TResponse extends SomeResponse>(
     path: TPath,
-    fn: (context: Prettify<TContext & { params: GetPathParameters<TPath> }>) => TReturn,
-  ) {
+    fn: (context: TContext) => MaybePromise<TResponse>,
+  ): Route<"GET", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("GET", path, fn);
   }
 
-  public post<const TPath extends string, const TReturn extends MaybePromise<PossibleResponse>>(
+  public post<const TPath extends string, const TResponse extends SomeResponse>(
     path: TPath,
-    fn: (context: Prettify<TContext & { params: GetPathParameters<TPath> }>) => TReturn,
-  ) {
+    fn: (context: TContext) => MaybePromise<TResponse>,
+  ): Route<"POST", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("POST", path, fn);
   }
 
-  public head<const TPath extends string, const TReturn extends MaybePromise<PossibleResponse>>(
+  public head<const TPath extends string, const TResponse extends SomeResponse>(
     path: TPath,
-    fn: (context: Prettify<TContext & { params: GetPathParameters<TPath> }>) => TReturn,
-  ) {
+    fn: (context: TContext) => MaybePromise<TResponse>,
+  ): Route<"HEAD", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("HEAD", path, fn);
   }
 
-  public put<const TPath extends string, const TReturn extends MaybePromise<PossibleResponse>>(
+  public put<const TPath extends string, const TResponse extends SomeResponse>(
     path: TPath,
-    fn: (context: Prettify<TContext & { params: GetPathParameters<TPath> }>) => TReturn,
-  ) {
+    fn: (context: TContext) => MaybePromise<TResponse>,
+  ): Route<"PUT", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("PUT", path, fn);
   }
 
-  public delete<const TPath extends string, const TReturn extends MaybePromise<PossibleResponse>>(
+  public delete<
+    const TPath extends string,
+    const TResponse extends SomeResponse,
+  >(
     path: TPath,
-    fn: (context: Prettify<TContext & { params: GetPathParameters<TPath> }>) => TReturn,
-  ) {
+    fn: (context: TContext) => MaybePromise<TResponse>,
+  ): Route<"DELETE", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("DELETE", path, fn);
   }
 
-  public options<const TPath extends string, const TReturn extends MaybePromise<PossibleResponse>>(
+  public patch<
+    const TPath extends string,
+    const TResponse extends SomeResponse,
+  >(
     path: TPath,
-    fn: (context: Prettify<TContext & { params: GetPathParameters<TPath> }>) => TReturn,
-  ) {
+    fn: (context: TContext) => MaybePromise<TResponse>,
+  ): Route<"PATCH", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
+    return this.handle("PATCH", path, fn);
+  }
+
+  public options<
+    const TPath extends string,
+    const TResponse extends SomeResponse,
+  >(
+    path: TPath,
+    fn: (context: TContext) => MaybePromise<TResponse>,
+  ): Route<"OPTIONS", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("OPTIONS", path, fn);
+  }
+
+  public trace<
+    const TPath extends string,
+    const TResponse extends SomeResponse,
+  >(
+    path: TPath,
+    fn: (context: TContext) => MaybePromise<TResponse>,
+  ): Route<"TRACE", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
+    return this.handle("TRACE", path, fn);
   }
 
   public handle<
     const TMethod extends string,
     const TPath extends string,
-    TReturn extends MaybePromise<PossibleResponse>,
-  >(method: TMethod, path: TPath, fn: (context: Prettify<TContext & { params: GetPathParameters<TPath> }>) => TReturn) {
-    return new Route<TMethod, TPath, TInputs, InferResponse<Awaited<TReturn>>, TErrorResponse>({
-      path,
+    const TResponse extends SomeResponse,
+  >(
+    method: TMethod,
+    path: TPath,
+    fn: (
+      context: TContext & { params: ResolvePath<TPath> },
+    ) => MaybePromise<TResponse>,
+  ): Route<TMethod, TPath, TResponse | TErrorResponse | TResponses, TInputs> {
+    return new Route({
       method,
-      errorHandler: this.opts?.errorHandler,
+      path,
+      handlers: this.opts.handlers,
       fn,
-      handler: this.opts?.handler,
-      validationSchemas: this.opts?.validationSchemas,
     });
   }
 }

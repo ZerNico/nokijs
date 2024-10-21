@@ -3,7 +3,10 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     coverage: {
-      exclude: ["src/index.ts"],
+      exclude: ["rollup.config.ts", "vitest.config.ts", "dist/**", "test/**"],
+    },
+    typecheck: {
+      include: ["test/**/*.test.ts"],
     },
   },
 });

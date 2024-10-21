@@ -1,33 +1,37 @@
 {
   "name": "@nokijs/client",
-  "version": "0.0.1-alpha.11",
+  "version": "0.0.1-alpha.13",
   "type": "module",
+  "license": "MIT",
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/esm/index.d.ts",
-        "default": "./dist/esm/index.js"
-      }
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
     }
   },
-  "sideEffects": false,
-  "devDependencies": {
-    "@nokijs/server": "workspace:*",
-    "@vitest/coverage-v8": "^2.0.5",
-    "rimraf": "^6.0.1",
-    "rollup": "^4.21.0",
-    "rollup-plugin-typescript2": "^0.36.0",
-    "typescript": "^5.5.4",
-    "vitest": "^2.0.5"
-  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
   "scripts": {
-    "build": "rollup --config rollup.config.ts --configPlugin typescript2",
-    "dev": "rollup --config rollup.config.ts --configPlugin typescript2 --watch",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "build": "unbuild",
+    "dev": "vitest --typecheck",
+    "test": "vitest run --typecheck",
+    "test:coverage": "vitest run --typecheck --coverage",
+    "stub": "unbuild --stub"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.5",
+    "@vitest/coverage-v8": "^2.1.1",
+    "typescript": "^5.6.2",
+    "unbuild": "^2.0.0",
+    "vitest": "^2.1.1",
+    "vitest-fetch-mock": "^0.3.0"
   },
   "dependencies": {
+    "@nokijs/server": "workspace:*",
     "ufo": "^1.5.4"
-  }
+  },
+  "packageManager": "pnpm@9.12.2"
 }

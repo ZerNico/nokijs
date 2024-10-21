@@ -1,15 +1,21 @@
-export async function parseBody(request: Request) {
+export async function parseBody(request: Request): Promise<unknown> {
   const contentType = request.headers.get("content-type");
 
-  if (contentType?.startsWith("application/json")) {
-    return request.json();
+  if (!contentType) {
+    return;
   }
 
-  if (contentType?.startsWith("text/plain")) {
-    return request.text();
+  if (contentType.includes("application/json")) {
+    return await request.json();
   }
 
-  if (contentType?.startsWith("application/x-www-form-urlencoded") || contentType?.startsWith("multipart/form-data")) {
-    return Object.fromEntries(await request.formData());
+  if (contentType.includes("application/x-www-form-urlencoded")) {
+    const formData = await request.formData();
+    const data = Object.fromEntries(formData.entries());
+    return data;
+  }
+
+  if (contentType.includes("text/plain")) {
+    return await request.text();
   }
 }

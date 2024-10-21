@@ -5,18 +5,12 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
-    "lint": {
-      "outputs": []
-    },
     "dev": {
       "cache": false
     },
-    "test": {
+    "stub": {
+      "dependsOn": ["^stub"],
       "cache": false
-    },
-    "start": {
-      "persistent": true,
-      "dependsOn": ["^build"]
     }
   },
   "ui": "tui"

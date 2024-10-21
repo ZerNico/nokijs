@@ -1,34 +1,42 @@
-import { Noki, RouteBuilder, groupRoutes } from "@nokijs/server";
-import * as v from "valibot";
+import { client } from "@nokijs/client";
+import { Noki, RouteBuilder } from "@nokijs/server";
+import { object, string } from "valibot";
 
-const baseRoute = new RouteBuilder().error((e, { res }) => {
-  return res.json({ error: "Test" }, { status: 500 });
-});
+const baseRoute = new RouteBuilder();
 
-const routes = groupRoutes(
-  [
-    baseRoute
-      .body(v.object({ name: v.string() }))
-      .derive(() => {
-        return { greeting: "Hello there," };
-      })
-      .get("/hello/:person", ({ res, greeting, params, getCookie }) => {
-        console.log(getCookie("test"));
+const route = baseRoute
+  .body(
+    object({
+      foo: string(),
+    }),
+  )
+  .error((err, { res }) => {
+    return res.json({ message: "An error occurred." }, { status: 500 });
+  })
+  .before(({ body, res }) => {
+    return res.json({ test: "Hello, World!" }, { status: 500 });
+  })
+  .post("/api/:id", ({ res, query }) => {
+    return res.json({ message: "Hello, World!" });
+  });
 
-        res.setCookie("test", params.person, { httpOnly: true, path: "/" });
-
-        return res.json({ greeting: `${greeting} ${params.person}` });
-      }),
-  ],
-  {
-    prefix: "api",
-  },
-);
-
-const noki = new Noki({ routes });
+const noki = new Noki([route]);
 
 const server = Bun.serve({
   fetch: noki.fetch,
 });
 
-console.log(`Listening on ${server.url}`);
+console.log(`Server running on ${server.url}`);
+
+const api = client<typeof noki>("http://localhost:3000");
+
+const response = await api.api[":id"].post({
+  body: { foo: "bar" },
+  params: { id: "test" },
+});
+
+if (response.ok) {
+  console.log(response.data);
+} else {
+  console.log(response.data);
+}

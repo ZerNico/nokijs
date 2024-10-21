@@ -1,83 +1,77 @@
-import { getQuery } from "ufo";
-import type { MaybePromise } from "valibot";
-import { buildContext } from "./context";
-import type { Handler, Inputs, PossibleResponse, ResponseTypes, ValidationSchemas } from "./types";
+import { getQuery, parseQuery } from "ufo";
+import { parseAsync } from "valibot";
+import { createContextFromRequest } from "./context";
+import type {
+  Handler,
+  MaybePromise,
+  SomeResponse,
+  ValidationKeys,
+} from "./types";
 import { parseBody } from "./utils/body";
-import { validate } from "./utils/validator";
 
 export class Route<
-  const TMethod extends string,
+  const TMethods extends string,
   const TPath extends string,
-  const TInputs extends Inputs,
-  const TResponse extends string | Record<string, any>,
-  const TErrorResponse extends ResponseTypes,
+  const TResponse extends SomeResponse,
+  const TInputs extends Partial<Record<ValidationKeys, unknown>>,
 > {
+  public method: TMethods;
   public path: TPath;
-  public method: TMethod;
-  public fn: (context: any) => MaybePromise<PossibleResponse>;
-  public validationSchemas?: ValidationSchemas;
-  public handler?: Handler[];
-  public errorHandler: (error: unknown, context: any) => MaybePromise<PossibleResponse>;
+  public handlers: Handler[];
+  public fn: (context: any) => MaybePromise<TResponse>;
+  public errorHandler: (
+    error: unknown,
+    context: any,
+  ) => MaybePromise<SomeResponse>;
 
   constructor(opts: {
+    method: TMethods;
     path: TPath;
-    method: TMethod;
-    handler?: Handler[];
-    fn: (context: any) => MaybePromise<PossibleResponse>;
-    validationSchemas?: ValidationSchemas;
-    errorHandler?: (error: unknown, context: any) => MaybePromise<PossibleResponse>;
+    handlers: Handler[];
+    fn: (context: any) => MaybePromise<TResponse>;
+    errorHandler?: (error: unknown, context: any) => MaybePromise<SomeResponse>;
   }) {
-    this.path = opts.path;
     this.method = opts.method;
+    this.path = opts.path;
+    this.handlers = opts.handlers;
     this.fn = opts.fn;
-    this.handler = opts.handler;
-    this.validationSchemas = opts.validationSchemas;
-    this.errorHandler = opts.errorHandler || defaultErrorHandler;
+    this.errorHandler = opts.errorHandler ?? defaultErrorHandler;
   }
 
-  public async handle(request: Request, params: Record<string, string | undefined>) {
-    let context: Record<string, any> = { ...buildContext(request), params };
+  public async handleRequest(
+    request: Request,
+    params: Record<string, any>,
+  ): Promise<SomeResponse> {
+    let context: Record<string, any> = {};
+
     try {
-      for (const handler of this.handler || []) {
+      context = createContextFromRequest(request);
+      context.params = params;
+
+      for (const handler of this.handlers) {
         if (handler.type === "derive") {
-          context = { ...context, ...(await handler.fn(context)) };
+          Object.assign(context, await handler.fn(context));
         } else if (handler.type === "before") {
           const response = await handler.fn(context);
           if (response) {
             return response;
           }
         } else if (handler.type === "validate") {
-          if (handler.key === "body" && this.validationSchemas?.body) {
-            const body = await parseBody(request);
-            const schema =
-              typeof this.validationSchemas.body === "function"
-                ? this.validationSchemas.body(context)
-                : this.validationSchemas.body;
+          if (handler.key === "body") {
+            const unknownBody = await parseBody(request);
+            const body = await parseAsync(handler.schema, unknownBody);
+            context.body = body;
+          }
 
-            context = { ...context, body: await validate(schema, body) };
-          } else if (handler.key === "query" && this.validationSchemas?.query) {
-            const query = getQuery(request.url);
-            const schema =
-              typeof this.validationSchemas.query === "function"
-                ? this.validationSchemas.query(context)
-                : this.validationSchemas.query;
-
-            context = { ...context, query: await validate(schema, query) };
+          if (handler.key === "query") {
+            const unknownQuery = getQuery(request.url);
+            const query = await parseAsync(handler.schema, unknownQuery);
+            context.query = query;
           }
         }
       }
 
-      let response = await this.fn(context);
-
-      for (const handler of this.handler || []) {
-        if (handler.type === "after") {
-          const modifiedResponse = await handler.fn(response, context);
-          if (modifiedResponse) {
-            response = modifiedResponse;
-          }
-        }
-      }
-
+      const response = await this.fn(context);
       return response;
     } catch (error) {
       return this.errorHandler(error, context);
@@ -85,6 +79,11 @@ export class Route<
   }
 }
 
+export type AnyRoute = Route<any, any, any, any>;
+
 function defaultErrorHandler(error: unknown) {
-  return new Response(error instanceof Error ? error.message : "An unknown error occurred", { status: 500 });
+  return new Response(
+    error instanceof Error ? error.message : "An unknown error occurred",
+    { status: 500 },
+  );
 }

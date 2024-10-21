@@ -1,69 +1,125 @@
-import type { AnyRoute, GetPathParameters, Noki, Route } from "@nokijs/server";
+import type {
+  Noki,
+  ResolvePath,
+  Route,
+  SomeResponse,
+  TypedResponse,
+} from "@nokijs/server";
 import type { QueryObject } from "ufo";
-import type { NokiClientError } from "./error";
 
-export type Client<TNoki extends Noki<any>, TBasePath extends string = ""> = TNoki extends Noki<infer TRoutes>
-  ? UnionToIntersection<
-      {
-        [I in keyof TRoutes]: PathToChain<StripPrefix<TRoutes[I]["path"], TBasePath>, TRoutes[I]>;
-      }[number]
+export type NokiClient<TNoki extends Noki<any>> = TNoki extends Noki<
+  infer TRoutes
+>
+  ? Prettify<
+      UnionToIntersection<
+        {
+          [K in keyof TRoutes]: PathToObject<
+            TRoutes[K]["path"],
+            Prettify<Action<TRoutes[K]>>
+          >;
+        }[number]
+      >
     >
   : never;
 
-type PathToChain<
-  TPath extends string,
-  TRoute extends AnyRoute,
-  TOriginal extends string = "",
-> = TPath extends `/${infer P}`
-  ? PathToChain<P, TRoute, TPath>
-  : TPath extends `${infer P}/${infer R}`
-    ? { [K in P]: PathToChain<R, TRoute, TOriginal> }
-    : {
-        [K in TPath extends "" ? "index" : TPath]: ClientRequest<TRoute>;
-      };
+type Action<TRoute extends AnyRoute> = {
+  [K in Lowercase<TRoute["method"]>]: AllOptional<
+    InferRequestOptions<TRoute>
+  > extends true
+    ? (
+        opts?: InferRequestOptions<TRoute>,
+      ) => Promise<Prettify<NokiClientResponse<TRoute>>>
+    : (
+        opts: InferRequestOptions<TRoute>,
+      ) => Promise<Prettify<NokiClientResponse<TRoute>>>;
+};
 
-type StripPrefix<Path extends string, Prefix extends string> = Path extends `${Prefix}${infer Rest}` ? Rest : Path;
-
-type ClientRequest<TRoute extends AnyRoute> = Prettify<
-  {
-    [K in Lowercase<TRoute["method"]>]: (
-      opts: InferClientRequestOptions<TRoute>,
-    ) => Promise<Prettify<TypedResponse<InferResponse<TRoute>>>>;
-  } & {
-    isNokiError: (error: unknown) => error is NokiClientError<TypedResponse<InferErrorResponse<TRoute>>>;
-  }
+type InferRequestOptions<TRoute extends AnyRoute> = Prettify<
+  OmitEmptyRecord<{
+    query?: QueryObject;
+    params: ResolvePath<TRoute["path"]>;
+    body: InferInputs<TRoute>["body"];
+  }>
 >;
 
-type InferClientRequestOptions<TRoute extends AnyRoute> = Prettify<
-  OmitNever<
-    {
-      query?: QueryObject;
-      params: GetPathParameters<TRoute["path"]>;
-    } & InferInputs<TRoute>
-  >
-> extends Record<string, never>
-  ? void
-  : Prettify<
-      OmitNever<
-        {
-          query?: QueryObject;
-          params: GetPathParameters<TRoute["path"]>;
-        } & InferInputs<TRoute>
-      >
-    >;
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
-type OmitNever<T> = Pick<T, { [K in keyof T]: T[K] extends never ? never : K }[keyof T]>;
-type Prettify<T> = { [K in keyof T]: T[K] } & {};
-type InferResponse<T extends AnyRoute> = T extends Route<any, any, any, infer TResponse, any> ? TResponse : never;
-type InferErrorResponse<T extends AnyRoute> = T extends Route<any, any, any, any, infer TErrorResponse>
-  ? TErrorResponse
+type NokiClientResponse<TRoute extends AnyRoute> = NokiResult<
+  InferResponse<TRoute>
+>;
+
+type NokiResult<T> = T extends TypedResponse<any, any>
+  ? {
+      data: InferResponseData<T>;
+      status: InferResponseStatus<T>;
+      ok: InferResponseStatus<T> extends Status2xx ? true : false;
+      raw: Response;
+    }
+  : {
+      data: unknown;
+      status: number;
+      ok: boolean;
+      raw: Response;
+    };
+
+type PathToObject<TPath extends string, TProperty> = TPath extends `/${infer P}`
+  ? PathToObject<P, TProperty>
+  : TPath extends `${infer P}/${infer R}`
+    ? { [K in P]: PathToObject<R, TProperty> }
+    : {
+        [K in TPath extends "" ? "index" : TPath]: TProperty;
+      };
+
+export type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
+
+type AnyRoute = Route<any, any, any, any>;
+type InferResponse<TRoute extends AnyRoute> = TRoute extends Route<
+  any,
+  any,
+  infer TResponse,
+  any
+>
+  ? TResponse
+  : never;
+type InferInputs<TRoute extends AnyRoute> = TRoute extends Route<
+  any,
+  any,
+  any,
+  infer TInputs
+>
+  ? TInputs
   : never;
 
-type InferInputs<T extends AnyRoute> = T extends Route<any, any, infer TInputs, any, any> ? TInputs : never;
+type InferResponseData<TResponse extends SomeResponse> =
+  TResponse extends TypedResponse<infer TData, number> ? TData : unknown;
+type InferResponseStatus<TResponse extends SomeResponse> =
+  TResponse extends TypedResponse<any, infer TStatus> ? TStatus : unknown;
+type Status2xx =
+  | 200
+  | 201
+  | 202
+  | 203
+  | 204
+  | 205
+  | 206
+  | 207
+  | 208
+  | 208
+  | 214
+  | 226;
 
-export type TypedResponse<TBody extends string | Record<string, any>> = {
-  data: TBody;
-  response: Response;
-  status: number;
-  headers: Headers;
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
+  k: infer I,
+) => void
+  ? I
+  : never;
+type OmitEmptyRecord<T> = {
+  [K in keyof T as T[K] extends Record<any, never> ? never : K]: T[K];
 };
+type AllOptional<T> = T extends Record<string, never>
+  ? true
+  : {
+        [K in keyof T]-?: undefined extends T[K] ? true : false;
+      }[keyof T] extends true
+    ? true
+    : false;

@@ -1,41 +1,36 @@
-import { joinURL } from "ufo";
-import { Route } from "../route";
-import type { AnyRoute } from "../types";
+import { type AnyRoute, Route } from "../route";
 
-export function groupRoutes<const TRoutes extends AnyRoute[], const TPrefix extends string | undefined = undefined>(
+export function groupRoutes<
+  const TRoutes extends ReadonlyArray<AnyRoute>,
+  const TPrefix extends string | undefined = undefined,
+>(
   routes: TRoutes,
   opts?: { prefix: TPrefix },
 ): TPrefix extends string ? PrefixedRoutes<TRoutes, TPrefix> : TRoutes {
-  if (opts?.prefix) {
-    const prefixedRoutes = [] as AnyRoute[];
-
-    for (const route of routes) {
-      prefixedRoutes.push(
-        new Route({
-          path: joinURL(opts.prefix, route.path),
-          method: route.method,
-          fn: route.fn,
-          handler: route.handler,
-          validationSchemas: route.validationSchemas,
-          errorHandler: route.errorHandler,
-        }),
-      );
-    }
-
-    return prefixedRoutes as any;
+  if (!opts?.prefix) {
+    return routes as any;
   }
 
-  return routes as any;
+  return routes.map((route) => {
+    return new Route({
+      method: route.method,
+      handlers: route.handlers,
+      fn: route.fn,
+      path: `${opts.prefix}${route.path}`,
+    });
+  }) as any;
 }
 
-type PrefixedRoutes<TRoutes extends AnyRoute[], TPrefix extends string> = {
+type PrefixedRoutes<
+  TRoutes extends ReadonlyArray<AnyRoute>,
+  TPrefix extends string,
+> = {
   [K in keyof TRoutes]: TRoutes[K] extends Route<
     infer TMethod,
     infer TPath,
-    infer TSchema,
     infer TResponse,
-    infer TErrorResponse
+    infer TInputs
   >
-    ? Route<TMethod, `${TPrefix}${TPath}`, TSchema, TResponse, TErrorResponse>
+    ? Route<TMethod, `${TPrefix}${TPath}`, TResponse, TInputs>
     : never;
 };
