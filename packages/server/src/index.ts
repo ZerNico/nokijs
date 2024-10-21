@@ -2,7 +2,7 @@ import Memoirist from "memoirist";
 import { TypedResponse } from "./response";
 import type { AnyRoute } from "./route";
 
-export class Noki<const TRoutes extends AnyRoute[]> {
+export class Noki<const TRoutes extends ReadonlyArray<AnyRoute>> {
   public routes: TRoutes;
   private router: Memoirist<AnyRoute>;
 
