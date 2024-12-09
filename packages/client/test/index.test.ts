@@ -1,9 +1,13 @@
+import { after, afterEach } from "node:test";
 import { Noki, RouteBuilder } from "@nokijs/server";
-import type { QueryObject } from "ufo";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { client } from "../src";
 
 describe("client", () => {
+  afterEach(() => {
+    fetchMock.resetMocks();
+  });
+
   it("should create a client with the correct structure", () => {
     const testApp = new Noki([
       new RouteBuilder().handle("GET", "/test", ({ res }) =>
@@ -48,12 +52,42 @@ describe("client", () => {
         id: "123",
       },
     });
-    expectTypeOf(testClient.test[":id"].get).parameter(0).toEqualTypeOf<{
-      query?: QueryObject | undefined;
-      params: {
-        id: string;
-      };
-    }>();
+  });
+
+  it("allows passing additional request options", async () => {
+    fetchMock.mockResponse("Hello, World!");
+
+    const testApp = new Noki([
+      new RouteBuilder().handle("GET", "/test", ({ res }) =>
+        res.json({ message: "Hello, World!" }),
+      ),
+    ]);
+    const testClient = client<typeof testApp>("http://localhost:3000");
+
+    const response = await testClient.test.get({
+      query: {
+        abc: "def",
+      },
+      headers: {
+        "x-custom-header": "value",
+      },
+      credentials: "include",
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:3000/test?abc=def",
+      expect.objectContaining({
+
+        credentials: "include",
+      }),
+    );
+
+    expect(testClient.test.get).toBeTypeOf("function");
+    expectTypeOf(testClient.test.get).toBeCallableWith({
+      query: {
+        abc: "def",
+      },
+      credentials: "include",
+    });
   });
 
   it("should make the correct request", async () => {

@@ -28,20 +28,29 @@ const createProxy = (domain: string, paths: string[] = []): any => {
         return path;
       });
 
-      const query = args[0]?.query as QueryObject | undefined;
+      const { query, body, headers, params, ...requestInit } =
+        (args[0] as {
+          params?: Record<string, string>;
+          query?: QueryObject;
+          body?: any;
+          headers?: Record<string, string>;
+        } & RequestInit) || {};
+
       const url = withQuery(joinURL(domain, ...pathsWithParams), query || {});
 
-      const body = args[0]?.body;
       const contentType = inferContentType(body);
       const encodedBody = encodeBody(body, contentType);
 
+      const contentTypeHeaders = new Headers();
+      if (contentType) {
+        contentTypeHeaders.set("content-type", contentType);
+      }
+
       const response = await fetch(url, {
         method,
-        headers: joinHeaders({
-          "content-type": contentType,
-          ...args[0]?.headers,
-        }),
+        headers: joinHeaders(contentTypeHeaders, headers),
         body: encodedBody,
+        ...requestInit,
       });
 
       const typedResponse = {

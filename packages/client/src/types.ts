@@ -39,7 +39,8 @@ type InferRequestOptions<TRoute extends AnyRoute> = Prettify<
     query?: QueryObject;
     params: ResolvePath<TRoute["path"]>;
     body: InferInputs<TRoute>["body"];
-  }>
+  }> &
+    Omit<RequestInit, "body" | "method">
 >;
 
 type NokiClientResponse<TRoute extends AnyRoute> = NokiResult<

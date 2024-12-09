@@ -26,15 +26,17 @@ const noki = new Noki(routes);
 
 const server = Bun.serve({
   fetch: noki.fetch,
+  port: 4000,
 });
 
 console.log(`Server running on ${server.url}`);
 
-const api = client<typeof noki>("http://localhost:3000");
+const api = client<typeof noki>("http://localhost:4000");
 
 const response = await api.api[":id"].post({
   body: { foo: "bar" },
   params: { id: "test" },
+  credentials: "include",
 });
 
 if (response.ok) {
