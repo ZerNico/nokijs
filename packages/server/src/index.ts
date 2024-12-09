@@ -39,3 +39,4 @@ export { Route } from "./route";
 export { TypedResponse } from "./response";
 export { groupRoutes } from "./utils/routes";
 export type { SomeResponse, ResolvePath } from "./types";
+export type { BaseContext } from "./context";
