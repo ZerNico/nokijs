@@ -1,3 +1,4 @@
+import { type CookieOptions, serializeCookie } from "./utils/cookies";
 import { joinHeaders } from "./utils/headers";
 
 export class ResponseBuilder {
@@ -30,6 +31,16 @@ export class ResponseBuilder {
     );
 
     return new TypedResponse(body, { ...opts, headers });
+  }
+
+  public setCookie(
+    name: string,
+    value: string,
+    opts?: CookieOptions,
+  ): void {
+    const cookie = serializeCookie(name, value, opts);
+
+    this.headers.append("set-cookie", cookie);
   }
 }
 
