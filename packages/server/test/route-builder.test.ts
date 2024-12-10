@@ -250,6 +250,15 @@ describe("RouteBuilder", () => {
         Route<"GET", "/test", SomeResponse, any>
       >();
     });
+
+    it("passes all required options to the route", () => {
+      const errorHandler = vi.fn();
+      const routeBuilder = new RouteBuilder().error(errorHandler).derive(() => ({}));
+      const route = routeBuilder.handle("GET", "/test", () => new Response());
+
+      expect(route.handlers).toHaveLength(1);
+      expect(route.errorHandler).toBe(errorHandler);
+    });
   });
 
   describe("get", () => {

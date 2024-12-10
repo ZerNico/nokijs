@@ -201,6 +201,7 @@ export class RouteBuilder<
       method,
       path,
       handlers: this.opts.handlers,
+      errorHandler: this.opts.errorHandler,
       fn,
     });
   }
