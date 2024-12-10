@@ -42,6 +42,15 @@ export class ResponseBuilder {
 
     this.headers.append("set-cookie", cookie);
   }
+
+  public deleteCookie(name: string, opts?: CookieOptions): void {
+    const cookie = serializeCookie(name, "", {
+      ...opts,
+      expires: new Date(0),
+    });
+
+    this.headers.append("set-cookie", cookie);
+  }
 }
 
 export class TypedResponse<

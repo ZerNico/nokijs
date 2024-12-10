@@ -83,6 +83,48 @@ describe("ResponseBuilder", () => {
       expectTypeOf(response).toMatchTypeOf<TypedResponse<string, 200>>();
     });
   });
+
+  describe("setCookie", () => {
+    it("should add a set-cookie header", () => {
+      const builder = new ResponseBuilder();
+      builder.setCookie("name", "value");
+
+      expect(builder.headers.get("set-cookie")).toBe("name=value");
+    });
+
+    it("should add a set-cookie header with options", () => {
+      const builder = new ResponseBuilder();
+      builder.setCookie("name", "value", {
+        expires: new Date("2022-01-01"),
+      });
+
+      expect(builder.headers.get("set-cookie")).toBe(
+        "name=value; Expires=Sat, 01 Jan 2022 00:00:00 GMT",
+      );
+    });
+  });
+
+  describe("deleteCookie", () => {
+    it("should add a set-cookie header with expiration in the past", () => {
+      const builder = new ResponseBuilder();
+      builder.deleteCookie("name");
+
+      expect(builder.headers.get("set-cookie")).toBe(
+        "name=; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+      );
+    });
+
+    it("should add a set-cookie header with options", () => {
+      const builder = new ResponseBuilder();
+      builder.deleteCookie("name", {
+        domain: "example.com",
+      });
+
+      expect(builder.headers.get("set-cookie")).toBe(
+        "name=; Domain=example.com; Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+      );
+    });
+  });
 });
 
 describe("TypedResponse", () => {
