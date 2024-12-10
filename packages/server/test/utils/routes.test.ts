@@ -21,6 +21,7 @@ describe("groupRoutes", () => {
     expect(result[0].method).toBe("GET");
     expect(result[0].fn).toBe(mockRoutes[0].fn);
     expect(result[0].handlers).toBe(mockRoutes[0].handlers);
+    expect(result[0].errorHandler).toBe(mockRoutes[0].errorHandler);
     expectTypeOf(result[0]).toMatchTypeOf<
       Route<"GET", "/prefix/route1", SomeResponse, any>
     >();
@@ -29,6 +30,7 @@ describe("groupRoutes", () => {
     expect(result[1].method).toBe("POST");
     expect(result[1].fn).toBe(mockRoutes[1].fn);
     expect(result[1].handlers).toBe(mockRoutes[1].handlers);
+    expect(result[1].errorHandler).toBe(mockRoutes[1].errorHandler);
     expectTypeOf(result[1]).toMatchTypeOf<
       Route<"POST", "/prefix/route2", SomeResponse, any>
     >();

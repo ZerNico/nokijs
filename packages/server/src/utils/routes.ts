@@ -17,6 +17,7 @@ export function groupRoutes<
       handlers: route.handlers,
       fn: route.fn,
       path: `${opts.prefix}${route.path}`,
+      errorHandler: route.errorHandler,
     });
   }) as any;
 }
