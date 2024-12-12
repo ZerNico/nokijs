@@ -90,4 +90,38 @@ describe("Middleware", () => {
       expect(beforeMiddleware).toBeInstanceOf(Middleware);
     });
   });
+
+  describe("use", () => {
+    it("should allow using another middleware", () => {
+      const middleware = new Middleware();
+      const otherMiddleware = new Middleware().derive(() => ({ foo: "bar" }));
+      const composedMiddleware = middleware.use(otherMiddleware);
+
+      expect(composedMiddleware).toBeInstanceOf(Middleware);
+      expectTypeOf(composedMiddleware).toMatchTypeOf<
+        Middleware<{ foo: string } & BaseContext>
+      >();
+      expect(composedMiddleware.opts.handlers).toHaveLength(1);
+    });
+
+    it("should merge multiple middleware handlers", () => {
+      const middleware = new Middleware();
+      const otherMiddleware = new Middleware()
+        .derive(() => ({ foo: "bar" }))
+        .before(() => {});
+      const composedMiddleware = middleware.use(otherMiddleware);
+
+      expect(composedMiddleware.opts.handlers).toHaveLength(2);
+    });
+
+    it("should correctly merge handler contexts", () => {
+      const middleware = new Middleware().derive(() => ({ foo: "bar" }));
+      const otherMiddleware = new Middleware().derive(() => ({ baz: 123 }));
+      const composedMiddleware = middleware.use(otherMiddleware);
+
+      expectTypeOf(composedMiddleware).toMatchTypeOf<
+        Middleware<{ foo: string; baz: number } & BaseContext>
+      >();
+    });
+  });
 });

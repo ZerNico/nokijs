@@ -1,10 +1,10 @@
 import { client } from "@nokijs/client";
-import { Middleware, Noki, RouteBuilder, groupRoutes } from "@nokijs/server";
+import { Noki, RouteBuilder, groupRoutes } from "@nokijs/server";
 import { object, string } from "valibot";
 
 const baseRoute = new RouteBuilder();
 
-const middleware = new Middleware().derive(() => {
+const middleware = new RouteBuilder().derive(() => {
   return { abc: "Hello, World!" };
 });
 

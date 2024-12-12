@@ -1,6 +1,5 @@
 import type { InferInput, InferOutput } from "valibot";
 import type { BaseContext } from "./context";
-import type { Middleware } from "./middleware";
 import type { TypedResponse } from "./response";
 import { Route } from "./route";
 import type {
@@ -66,23 +65,16 @@ export class RouteBuilder<
     schema: TSchema,
   ): RouteBuilder<
     Prettify<Omit<TContext, "body"> & { body: InferOutput<TSchema> }>,
-    Prettify<Omit<TInputs, "body"> & { body: InferInput<TSchema> }>,
+    Prettify<TInputs & { body: InferInput<TSchema> }>,
     TErrorResponse,
     TResponses
   > {
-    const filteredHandlers = this.opts.handlers.filter(
-      (handler) => handler.type !== "validate" || handler.key !== "body",
-    );
-
-    filteredHandlers.push({
-      type: "validate",
-      schema,
-      key: "body",
-    });
-
     return new RouteBuilder({
       ...this.opts,
-      handlers: filteredHandlers,
+      handlers: [
+        ...this.opts.handlers,
+        { type: "validate", schema, key: "body" },
+      ],
     });
   }
 
@@ -90,23 +82,16 @@ export class RouteBuilder<
     schema: TSchema,
   ): RouteBuilder<
     Prettify<Omit<TContext, "query"> & { query: InferOutput<TSchema> }>,
-    Prettify<Omit<TInputs, "query"> & { query: InferInput<TSchema> }>,
+    Prettify<TInputs & { query: InferInput<TSchema> }>,
     TErrorResponse,
     TResponses
   > {
-    const filteredHandlers = this.opts.handlers.filter(
-      (handler) => handler.type !== "validate" || handler.key !== "query",
-    );
-
-    filteredHandlers.push({
-      type: "validate",
-      schema,
-      key: "query",
-    });
-
     return new RouteBuilder({
       ...this.opts,
-      handlers: filteredHandlers,
+      handlers: [
+        ...this.opts.handlers,
+        { type: "validate", schema, key: "query" },
+      ],
     });
   }
 
@@ -207,17 +192,28 @@ export class RouteBuilder<
     });
   }
 
-  public use<TMiddlewareContext extends Record<string, any>>(
-    middleware: Middleware<TMiddlewareContext>,
+  public use<
+    TOtherContext extends Record<string, any>,
+    TOtherInputs extends Partial<Record<ValidationKeys, unknown>>,
+    TOtherError extends SomeResponse,
+    TOtherResponses extends SomeResponse,
+  >(
+    otherBuilder: RouteBuilder<
+      TOtherContext,
+      TOtherInputs,
+      TOtherError,
+      TOtherResponses
+    >,
   ): RouteBuilder<
-    Prettify<TContext & TMiddlewareContext>,
-    Prettify<TInputs>,
+    Prettify<TContext & TOtherContext>,
+    Prettify<TInputs & TOtherInputs>,
     TErrorResponse,
-    TResponses
+    TResponses | TOtherResponses
   > {
     return new RouteBuilder({
       ...this.opts,
-      handlers: [...this.opts.handlers, ...middleware.opts.handlers],
+      handlers: [...this.opts.handlers, ...otherBuilder.opts.handlers],
+      errorHandler: this.opts.errorHandler,
     });
   }
 }

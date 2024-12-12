@@ -1,10 +1,9 @@
 import { object, string } from "valibot";
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
 import type { BaseContext } from "../src/context.js";
-import { Middleware } from "../src/middleware.js";
 import { RouteBuilder } from "../src/route-builder.js";
 import { Route } from "../src/route.js";
-import type { BeforeHandler, SomeResponse } from "../src/types.js";
+import type { BeforeHandler, SomeResponse, ValidationKeys } from "../src/types.js";
 
 describe("RouteBuilder", () => {
   it("should allow creating a route builder without options", () => {
@@ -140,37 +139,6 @@ describe("RouteBuilder", () => {
         RouteBuilder<{ body: { test: string } }, { body: { test: string } }>
       >();
     });
-
-    it("should override existing body validation", () => {
-      const routeBuilder = new RouteBuilder();
-      const schema = object({
-        test: string(),
-      });
-      const bodyRouteBuilder = routeBuilder.body(schema);
-
-      expect((bodyRouteBuilder.opts.handlers[0] as any).schema).toBe(schema);
-      expectTypeOf(bodyRouteBuilder).toMatchTypeOf<
-        RouteBuilder<{ body: { test: string } }, { body: { test: string } }>
-      >();
-
-      const newSchema = object({
-        foo: string(),
-      });
-      const finalRouteBuilder = bodyRouteBuilder.body(newSchema);
-
-      expect((finalRouteBuilder.opts.handlers[0] as any).schema).toBe(
-        newSchema,
-      );
-      expect((finalRouteBuilder.opts.handlers[0] as any).schema).not.toBe(
-        schema,
-      );
-      expectTypeOf(finalRouteBuilder).toMatchTypeOf<
-        RouteBuilder<{ body: { foo: string } }, { body: { foo: string } }>
-      >();
-      expectTypeOf(finalRouteBuilder).not.toMatchTypeOf<
-        RouteBuilder<{ body: { test: string } }, { body: { test: string } }>
-      >();
-    });
   });
 
   describe("query", () => {
@@ -187,37 +155,6 @@ describe("RouteBuilder", () => {
 
       expect(queryRouteBuilder).toBeInstanceOf(RouteBuilder);
       expectTypeOf(queryRouteBuilder).toMatchTypeOf<
-        RouteBuilder<{ query: { test: string } }, { query: { test: string } }>
-      >();
-    });
-
-    it("should override existing query validation", () => {
-      const routeBuilder = new RouteBuilder();
-      const schema = object({
-        test: string(),
-      });
-      const queryRouteBuilder = routeBuilder.query(schema);
-
-      expect((queryRouteBuilder.opts.handlers[0] as any).schema).toBe(schema);
-      expectTypeOf(queryRouteBuilder).toMatchTypeOf<
-        RouteBuilder<{ query: { test: string } }, { query: { test: string } }>
-      >();
-
-      const newSchema = object({
-        foo: string(),
-      });
-      const finalRouteBuilder = queryRouteBuilder.query(newSchema);
-
-      expect((finalRouteBuilder.opts.handlers[0] as any).schema).toBe(
-        newSchema,
-      );
-      expect((finalRouteBuilder.opts.handlers[0] as any).schema).not.toBe(
-        schema,
-      );
-      expectTypeOf(finalRouteBuilder).toMatchTypeOf<
-        RouteBuilder<{ query: { foo: string } }, { query: { foo: string } }>
-      >();
-      expectTypeOf(finalRouteBuilder).not.toMatchTypeOf<
         RouteBuilder<{ query: { test: string } }, { query: { test: string } }>
       >();
     });
@@ -254,7 +191,9 @@ describe("RouteBuilder", () => {
 
     it("passes all required options to the route", () => {
       const errorHandler = vi.fn();
-      const routeBuilder = new RouteBuilder().error(errorHandler).derive(() => ({}));
+      const routeBuilder = new RouteBuilder()
+        .error(errorHandler)
+        .derive(() => ({}));
       const route = routeBuilder.handle("GET", "/test", () => new Response());
 
       expect(route.handlers).toHaveLength(1);
@@ -389,26 +328,215 @@ describe("RouteBuilder", () => {
   });
 
   describe("use", () => {
-    it("should allow using a middleware", () => {
+    it("should allow using another route builder", () => {
       const routeBuilder = new RouteBuilder();
-      const middleware = new Middleware().derive(() => ({ foo: "bar" }));
-      const withMiddleware = routeBuilder.use(middleware);
+      const otherBuilder = new RouteBuilder().derive(() => ({ foo: "bar" }));
+      const combined = routeBuilder.use(otherBuilder);
 
-      expect(withMiddleware).toBeInstanceOf(RouteBuilder);
-      expectTypeOf(withMiddleware).toMatchTypeOf<
+      expect(combined).toBeInstanceOf(RouteBuilder);
+      expectTypeOf(combined).toMatchTypeOf<
         RouteBuilder<{ foo: string } & BaseContext>
       >();
-      expect(withMiddleware.opts.handlers).toHaveLength(1);
+      expect(combined.opts.handlers).toHaveLength(1);
     });
 
-    it("should merge multiple middleware handlers", () => {
+    it("should merge multiple handlers", () => {
       const routeBuilder = new RouteBuilder();
-      const middleware = new Middleware()
+      const otherBuilder = new RouteBuilder()
         .derive(() => ({ foo: "bar" }))
         .before(() => {});
-      const withMiddleware = routeBuilder.use(middleware);
+      const combined = routeBuilder.use(otherBuilder);
 
-      expect(withMiddleware.opts.handlers).toHaveLength(2);
+      expect(combined.opts.handlers).toHaveLength(2);
+    });
+
+    it("should correctly merge handler contexts and inputs", () => {
+      const routeBuilder = new RouteBuilder()
+        .derive(() => ({ foo: "bar" }))
+        .body(object({ name: string() }));
+
+      const otherBuilder = new RouteBuilder()
+        .derive(() => ({ baz: 123 }))
+        .query(object({ id: string() }));
+
+      const combined = routeBuilder.use(otherBuilder);
+
+      expectTypeOf(combined).toMatchTypeOf<
+        RouteBuilder<
+          { foo: string; baz: number } & BaseContext,
+          { body: { name: string }; query: { id: string } }
+        >
+      >();
+    });
+
+    it("should merge error handlers", () => {
+      const errorHandler = () => new Response("error");
+      const routeBuilder = new RouteBuilder().error(errorHandler);
+      const otherBuilder = new RouteBuilder();
+      const combined = routeBuilder.use(otherBuilder);
+
+      expect(combined.opts.errorHandler).toBe(errorHandler);
+    });
+
+    type InferContext<T> = T extends RouteBuilder<infer C, any, any, any>
+      ? C
+      : never;
+    type InferInputs<T> = T extends RouteBuilder<any, infer I, any, any>
+      ? I
+      : never;
+    type InferResponses<T> = T extends RouteBuilder<any, any, any, infer R>
+      ? R
+      : never;
+    type InferError<T> = T extends RouteBuilder<any, any, infer E, any>
+      ? E
+      : never;
+
+    it("should merge multiple derive handlers in correct order", () => {
+      const first = new RouteBuilder().derive(() => ({ foo: "bar" }));
+      const second = new RouteBuilder().derive(() => ({ baz: 123 }));
+      const third = new RouteBuilder().derive(() => ({ qux: true }));
+
+      const combined = first.use(second).use(third);
+
+      expect(combined.opts.handlers).toHaveLength(3);
+      expect(combined.opts.handlers[0]).toEqual({
+        type: "derive",
+        fn: expect.any(Function),
+      });
+
+      expectTypeOf<InferContext<typeof combined>>().toMatchTypeOf<
+        {
+          foo: string;
+          baz: number;
+          qux: boolean;
+        } & BaseContext
+      >();
+    });
+
+    it("should merge multiple before handlers in correct order", () => {
+      const first = new RouteBuilder().before(() => new Response("1"));
+      const second = new RouteBuilder().before(() => new Response("2"));
+
+      const combined = first.use(second);
+
+      expect(combined.opts.handlers).toHaveLength(2);
+      expectTypeOf<InferResponses<typeof combined>>().toEqualTypeOf<Response>();
+    });
+
+    it("should merge multiple body validators", () => {
+      const first = new RouteBuilder().body(object({ name: string() }));
+      const second = new RouteBuilder().body(object({ age: string() }));
+
+      const combined = first.use(second);
+
+      expect(combined.opts.handlers).toHaveLength(2);
+      expectTypeOf<InferInputs<typeof combined>>().toMatchTypeOf<{
+        body: { name: string } & { age: string };
+      }>();
+    });
+
+    it("should merge multiple query validators", () => {
+      const first = new RouteBuilder().query(object({ sort: string() }));
+      const second = new RouteBuilder().query(object({ filter: string() }));
+
+      const combined = first.use(second);
+
+      expect(combined.opts.handlers).toHaveLength(2);
+      expectTypeOf<InferInputs<typeof combined>>().toMatchTypeOf<{
+        query: { sort: string } & { filter: string };
+      }>();
+    });
+
+    it("should keep the first error handler when merging", () => {
+      const firstError = () => new Response("first");
+      const secondError = () => new Response("second");
+
+      const first = new RouteBuilder().error(firstError);
+      const second = new RouteBuilder().error(secondError);
+
+      const combined = first.use(second);
+
+      expect(combined.opts.errorHandler).toBe(firstError);
+      expectTypeOf<InferError<typeof combined>>().toEqualTypeOf<Response>();
+    });
+
+    it("should handle complex nested merges", () => {
+      const auth = new RouteBuilder()
+        .derive(() => ({ user: { id: 1 } }))
+        .before(() => {});
+
+      const validation = new RouteBuilder()
+        .body(object({ data: string() }))
+        .query(object({ version: string() }));
+
+      const logging = new RouteBuilder()
+        .before(() => console.log("request"))
+        .error(() => new Response("error"));
+
+      const combined = auth.use(validation).use(logging);
+
+      expect(combined.opts.handlers).toHaveLength(5);
+      expectTypeOf<InferContext<typeof combined>>().toMatchTypeOf<
+        {
+          user: { id: number };
+          body: { data: string };
+          query: { version: string };
+        } & BaseContext
+      >();
+      expectTypeOf<InferInputs<typeof combined>>().toMatchTypeOf<{
+        body: { data: string };
+        query: { version: string };
+      }>();
+    });
+
+    it("should preserve void responses in before handlers", () => {
+      const first = new RouteBuilder().before(() => {});
+      const second = new RouteBuilder().before(() => {});
+
+      const combined = first.use(second);
+
+      expectTypeOf<InferResponses<typeof combined>>().toEqualTypeOf<never>();
+    });
+
+    it("should merge different response types from before handlers", () => {
+      const first = new RouteBuilder().before(() => new Response("1"));
+      const second = new RouteBuilder().before(() => new Response("2"));
+      const third = new RouteBuilder().before(() => {});
+
+      const combined = first.use(second).use(third);
+
+      expectTypeOf<InferResponses<typeof combined>>().toEqualTypeOf<Response>();
+    });
+
+    it("should handle empty builders", () => {
+      const first = new RouteBuilder();
+      const second = new RouteBuilder();
+
+      const combined = first.use(second);
+
+      expect(combined.opts.handlers).toHaveLength(0);
+      expect(combined.opts.errorHandler).toBeUndefined();
+      expectTypeOf<
+        InferContext<typeof combined>
+      >().toEqualTypeOf<BaseContext>();
+      expectTypeOf<InferInputs<typeof combined>>().toMatchTypeOf<
+        Record<ValidationKeys, never>
+      >();
+    });
+
+    it("should work with the handle method after merging", () => {
+      const auth = new RouteBuilder().derive(() => ({ user: { id: 1 } }));
+      const validation = new RouteBuilder().body(object({ data: string() }));
+
+      const combined = auth.use(validation);
+      const route = combined.handle("GET", "/test", (ctx) => {
+        expectTypeOf(ctx.user.id).toBeNumber();
+        expectTypeOf(ctx.body.data).toBeString();
+        return new Response();
+      });
+
+      expect(route).toBeInstanceOf(Route);
+      expect(route.handlers).toHaveLength(2);
     });
   });
 });
