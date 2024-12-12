@@ -35,6 +35,7 @@ export class Noki<const TRoutes extends ReadonlyArray<AnyRoute>> {
 }
 
 export { RouteBuilder } from "./route-builder";
+export { Middleware } from "./middleware";
 export { Route } from "./route";
 export { TypedResponse } from "./response";
 export { groupRoutes } from "./utils/routes";

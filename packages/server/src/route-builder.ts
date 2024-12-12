@@ -1,5 +1,6 @@
 import type { InferInput, InferOutput } from "valibot";
 import type { BaseContext } from "./context";
+import type { Middleware } from "./middleware";
 import type { TypedResponse } from "./response";
 import { Route } from "./route";
 import type {
@@ -203,6 +204,20 @@ export class RouteBuilder<
       handlers: this.opts.handlers,
       errorHandler: this.opts.errorHandler,
       fn,
+    });
+  }
+
+  public use<TMiddlewareContext extends Record<string, any>>(
+    middleware: Middleware<TMiddlewareContext>,
+  ): RouteBuilder<
+    Prettify<TContext & TMiddlewareContext>,
+    Prettify<TInputs>,
+    TErrorResponse,
+    TResponses
+  > {
+    return new RouteBuilder({
+      ...this.opts,
+      handlers: [...this.opts.handlers, ...middleware.opts.handlers],
     });
   }
 }

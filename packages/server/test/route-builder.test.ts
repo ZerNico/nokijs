@@ -1,6 +1,7 @@
 import { object, string } from "valibot";
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
 import type { BaseContext } from "../src/context.js";
+import { Middleware } from "../src/middleware.js";
 import { RouteBuilder } from "../src/route-builder.js";
 import { Route } from "../src/route.js";
 import type { BeforeHandler, SomeResponse } from "../src/types.js";
@@ -384,6 +385,30 @@ describe("RouteBuilder", () => {
       expectTypeOf(errorRouteBuilder).toMatchTypeOf<
         RouteBuilder<any, any, Response>
       >();
+    });
+  });
+
+  describe("use", () => {
+    it("should allow using a middleware", () => {
+      const routeBuilder = new RouteBuilder();
+      const middleware = new Middleware().derive(() => ({ foo: "bar" }));
+      const withMiddleware = routeBuilder.use(middleware);
+
+      expect(withMiddleware).toBeInstanceOf(RouteBuilder);
+      expectTypeOf(withMiddleware).toMatchTypeOf<
+        RouteBuilder<{ foo: string } & BaseContext>
+      >();
+      expect(withMiddleware.opts.handlers).toHaveLength(1);
+    });
+
+    it("should merge multiple middleware handlers", () => {
+      const routeBuilder = new RouteBuilder();
+      const middleware = new Middleware()
+        .derive(() => ({ foo: "bar" }))
+        .before(() => {});
+      const withMiddleware = routeBuilder.use(middleware);
+
+      expect(withMiddleware.opts.handlers).toHaveLength(2);
     });
   });
 });

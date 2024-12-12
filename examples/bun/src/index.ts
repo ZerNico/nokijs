@@ -1,8 +1,12 @@
 import { client } from "@nokijs/client";
-import { Noki, RouteBuilder, groupRoutes } from "@nokijs/server";
+import { Middleware, Noki, RouteBuilder, groupRoutes } from "@nokijs/server";
 import { object, string } from "valibot";
 
 const baseRoute = new RouteBuilder();
+
+const middleware = new Middleware().derive(() => {
+  return { abc: "Hello, World!" };
+});
 
 const route = baseRoute
   .body(
@@ -10,14 +14,15 @@ const route = baseRoute
       foo: string(),
     }),
   )
+  .use(middleware)
   .error((err, { res }) => {
     return res.json({ message: "An error occurred." }, { status: 500 });
   })
   .before(({ body, res }) => {
     return res.json({ test: "Hello, World!" }, { status: 500 });
   })
-  .post("/api/:id", ({ res, query }) => {
-    return res.json({ message: "Hello, World!" });
+  .post("/api/:id", ({ res, query, abc }) => {
+    return res.json({ message: "Hello, World!", abc });
   });
 
 const routes = groupRoutes([route]);
