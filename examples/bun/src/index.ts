@@ -4,9 +4,15 @@ import { object, string } from "valibot";
 
 const baseRoute = new RouteBuilder();
 
-const middleware = new RouteBuilder().derive(() => {
-  return { abc: "Hello, World!" };
-});
+const middleware = new RouteBuilder()
+  .derive(() => {
+    return { abc: "Hello, World!" };
+  })
+  .body(
+    object({
+      bar: string(),
+    }),
+  );
 
 const route = baseRoute
   .body(
@@ -39,7 +45,7 @@ console.log(`Server running on ${server.url}`);
 const api = client<typeof noki>("http://localhost:4000");
 
 const response = await api.api[":id"].post({
-  body: { foo: "bar" },
+  body: { bar: "bar", foo: "foo" },
   params: { id: "test" },
   credentials: "include",
 });

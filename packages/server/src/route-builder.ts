@@ -65,7 +65,7 @@ export class RouteBuilder<
     schema: TSchema,
   ): RouteBuilder<
     Prettify<Omit<TContext, "body"> & { body: InferOutput<TSchema> }>,
-    Prettify<TInputs & { body: InferInput<TSchema> }>,
+    Prettify<Omit<TInputs, "body"> & { body: InferInput<TSchema> }>,
     TErrorResponse,
     TResponses
   > {
@@ -205,8 +205,20 @@ export class RouteBuilder<
       TOtherResponses
     >,
   ): RouteBuilder<
-    Prettify<TContext & TOtherContext>,
-    Prettify<TInputs & TOtherInputs>,
+    Prettify<
+      Omit<TContext & TOtherContext, ValidationKeys> & {
+        [K in ValidationKeys]: TOtherInputs[K] extends never
+          ? TInputs[K]
+          : TOtherInputs[K];
+      }
+    >,
+    Prettify<{
+      [K in ValidationKeys]: TInputs[K] extends never
+        ? TOtherInputs[K]
+        : TOtherInputs[K] extends never
+          ? TInputs[K]
+          : TInputs[K] & TOtherInputs[K];
+    }>,
     TErrorResponse,
     TResponses | TOtherResponses
   > {
