@@ -8,7 +8,7 @@
   "dependencies": {
     "@nokijs/client": "workspace:*",
     "@nokijs/server": "workspace:*",
-    "valibot": "1.0.0-beta.1"
+    "valibot": "1.0.0-beta.9"
   },
   "devDependencies": {
     "@types/bun": "^1.1.9"
