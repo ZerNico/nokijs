@@ -1,19 +1,25 @@
 import type { Noki } from "@nokijs/server";
 import { type QueryObject, joinURL, withQuery } from "ufo";
-import type { NokiClient } from "./types";
+import type { ClientOptions, NokiClient } from "./types";
 import { encodeBody, inferContentType, parseResponseBody } from "./utils/body";
 import { joinHeaders } from "./utils/headers";
 
+
 export function client<const TNoki extends Noki<any>>(
   url: string,
+  options?: ClientOptions,
 ): NokiClient<TNoki> {
-  return createProxy(url);
+  return createProxy(url, undefined, options);
 }
 
-const createProxy = (domain: string, paths: string[] = []): any => {
+const createProxy = (
+  domain: string,
+  paths: string[] = [],
+  options?: ClientOptions,
+): any => {
   return new Proxy(() => {}, {
     get(_, param: string) {
-      return createProxy(domain, param === "index" ? paths : [...paths, param]);
+      return createProxy(domain, param === "index" ? paths : [...paths, param], options);
     },
 
     async apply(_, __, args) {
@@ -46,12 +52,19 @@ const createProxy = (domain: string, paths: string[] = []): any => {
         contentTypeHeaders.set("content-type", contentType);
       }
 
-      const response = await fetch(url, {
-        method,
+
+      const requestOptions = {
+        method: method?.toUpperCase(),
         headers: joinHeaders(contentTypeHeaders, headers),
         body: encodedBody,
         ...requestInit,
-      });
+      }
+
+      let response = await fetch(url, requestOptions);
+      
+      if (options?.onResponse) {
+        response = options.onResponse({ response, url, options: requestOptions });
+      }
 
       const typedResponse = {
         raw: response.clone(),

@@ -1,6 +1,5 @@
-import { after, afterEach } from "node:test";
 import { Noki, RouteBuilder } from "@nokijs/server";
-import { describe, expect, expectTypeOf, it } from "vitest";
+import { afterEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 import { client } from "../src";
 
 describe("client", () => {
@@ -105,5 +104,72 @@ describe("client", () => {
     expect(response.ok).toBe(true);
     expect(response.status).toBe(200);
     expect(response.data).toBe("Hello, World!");
+  });
+
+  it("should call onResponse callback with correct parameters", async () => {
+    fetchMock.mockResponse("Hello, World!");
+    const onResponse = vi.fn((data) => data.response);
+
+    const testApp = new Noki([
+      new RouteBuilder().handle("GET", "/test", ({ res }) =>
+        res.json({ message: "Hello, World!" }),
+      ),
+    ]);
+    const testClient = client<typeof testApp>("http://localhost:3000", {
+      onResponse,
+    });
+
+    await testClient.test.get();
+
+    expect(onResponse).toHaveBeenCalledWith({
+      response: expect.any(Response),
+      url: "http://localhost:3000/test",
+      options: expect.objectContaining({
+        method: "GET",
+      }),
+    });
+  });
+
+  it("should allow modifying the response in onResponse", async () => {
+    fetchMock.mockResponse("Original");
+    const onResponse = vi.fn((data) => {
+      return new Response("Modified", {
+        status: 201,
+      });
+    });
+
+    const testApp = new Noki([
+      new RouteBuilder().handle("GET", "/test", ({ res }) =>
+        res.json({ message: "Hello, World!" }),
+      ),
+    ]);
+    const testClient = client<typeof testApp>("http://localhost:3000", {
+      onResponse,
+    });
+
+    const response = await testClient.test.get();
+
+    expect(response.data).toBe("Modified");
+    expect(response.status).toBe(201);
+  });
+
+  it("should call onResponse for each request", async () => {
+    fetchMock.mockResponse("Test");
+    const onResponse = vi.fn((data) => data.response);
+
+    const testApp = new Noki([
+      new RouteBuilder().handle("GET", "/test", ({ res }) =>
+        res.json({ message: "Hello, World!" }),
+      ),
+    ]);
+    const testClient = client<typeof testApp>("http://localhost:3000", {
+      onResponse,
+    });
+
+    await testClient.test.get();
+    await testClient.test.get();
+    await testClient.test.get();
+
+    expect(onResponse).toHaveBeenCalledTimes(3);
   });
 });

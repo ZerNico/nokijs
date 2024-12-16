@@ -124,3 +124,11 @@ type AllOptional<T> = T extends Record<string, never>
       }[keyof T] extends true
     ? true
     : false;
+
+export interface ClientOptions {
+  onResponse?: (data: {
+    response: Response;
+    url: string;
+    options: RequestInit;
+  }) => Response;
+}
