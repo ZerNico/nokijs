@@ -1,5 +1,5 @@
 import { client } from "@nokijs/client";
-import { Noki, RouteBuilder, groupRoutes } from "@nokijs/server";
+import { Noki, RouteBuilder, SchemaError, groupRoutes } from "@nokijs/server";
 import { object, string } from "valibot";
 
 const baseRoute = new RouteBuilder();
@@ -22,10 +22,18 @@ const route = baseRoute
   )
   .use(middleware)
   .error((err, { res }) => {
+    console.log(err);
+    
+    if (err instanceof SchemaError) {
+      return res.json({ issues: err.issues }, { status: 400 });
+    }
+    
     return res.json({ message: "An error occurred." }, { status: 500 });
   })
   .before(({ body, res }) => {
-    return res.json({ test: "Hello, World!" }, { status: 500 });
+    if (body.bar === "foo") {
+      return res.json({ message: "Bar cannot be foo." }, { status: 400 });
+    }
   })
   .post("/api/:id", ({ res, query, abc }) => {
     return res.json({ message: "Hello, World!", abc });

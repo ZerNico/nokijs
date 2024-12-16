@@ -1,4 +1,4 @@
-import type { BaseSchema, GenericSchema, GenericSchemaAsync } from "valibot";
+import type { StandardSchemaV1 } from "@standard-schema/spec";
 import type { TypedResponse } from "./response";
 
 export type MaybePromise<T> = T | Promise<T>;
@@ -24,7 +24,7 @@ export type BeforeHandler = {
 export type Handler = DeriveHandler | ValidateHandler | BeforeHandler;
 
 export type SomeResponse = Response | TypedResponse<any, any>;
-export type AnySchema = GenericSchema | GenericSchemaAsync;
+export type AnySchema = StandardSchemaV1;
 
 /* Thanks @SaltyAom <3 */
 type IsPathParameter<Part extends string> = Part extends `:${infer Parameter}`

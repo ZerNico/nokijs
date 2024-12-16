@@ -11,14 +11,14 @@ describe("ResponseBuilder", () => {
   });
 
   describe("json response", () => {
-    it("should create a TypedResponse with JSON body", () => {
+    it("should create a TypedResponse with JSON body", async () => {
       const builder = new ResponseBuilder();
       const body = { message: "Hello, world!" };
       const response = builder.json(body);
 
       expect(response.headers.get("content-type")).toBe("application/json");
       expect(response.status).toBe(200);
-      expect(response.toResponse().json()).resolves.toEqual(body);
+      await expect(response.toResponse().json()).resolves.toEqual(body);
       expectTypeOf(response).toMatchTypeOf<
         TypedResponse<{ message: string }, 200>
       >();
@@ -51,14 +51,14 @@ describe("ResponseBuilder", () => {
   });
 
   describe("text response", () => {
-    it("should create a TypedResponse with string body", () => {
+    it("should create a TypedResponse with string body", async () => {
       const builder = new ResponseBuilder();
       const body = "Hello, world!";
       const response = builder.text(body);
 
       expect(response.headers.get("content-type")).toBe("text/plain");
       expect(response.status).toBe(200);
-      expect(response.toResponse().text()).resolves.toBe(body);
+      await expect(response.toResponse().text()).resolves.toBe(body);
       expectTypeOf(response).toMatchTypeOf<TypedResponse<string, 200>>();
     });
 
@@ -158,18 +158,18 @@ describe("TypedResponse", () => {
     expect(response.headers.get("x-custom-header")).toBe("custom-value");
   });
 
-  it("should allow converting to a Response instance", () => {
+  it("should allow converting to a Response instance", async () => {
     const response = new TypedResponse("Hello, world!");
 
     expect(response.toResponse()).toBeInstanceOf(Response);
-    expect(response.toResponse().text()).resolves.toBe("Hello, world!");
+    await expect(response.toResponse().text()).resolves.toBe("Hello, world!");
   });
 
-  it("should allow converting to a Response instance with JSON body", () => {
+  it("should allow converting to a Response instance with JSON body", async () => {
     const response = new TypedResponse({ message: "Hello, world!" });
 
     expect(response.toResponse()).toBeInstanceOf(Response);
-    expect(response.toResponse().json()).resolves.toEqual({
+    await expect(response.toResponse().json()).resolves.toEqual({
       message: "Hello, world!",
     });
   });

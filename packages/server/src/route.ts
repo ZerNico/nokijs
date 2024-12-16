@@ -1,5 +1,4 @@
-import { getQuery, parseQuery } from "ufo";
-import { parseAsync } from "valibot";
+import { getQuery } from "ufo";
 import { createContextFromRequest } from "./context";
 import type {
   Handler,
@@ -8,6 +7,7 @@ import type {
   ValidationKeys,
 } from "./types";
 import { parseBody } from "./utils/body";
+import { validateInput } from "./utils/validate";
 
 export class Route<
   const TMethods extends string,
@@ -58,14 +58,15 @@ export class Route<
           }
         } else if (handler.type === "validate") {
           if (handler.key === "body") {
-            const unknownBody = await parseBody(request);
-            const body = await parseAsync(handler.schema, unknownBody);
+            const unknownBody = await parseBody(request.clone());
+
+            const body = await validateInput(handler.schema, unknownBody);
             context.body = body;
           }
 
           if (handler.key === "query") {
             const unknownQuery = getQuery(request.url);
-            const query = await parseAsync(handler.schema, unknownQuery);
+            const query = await validateInput(handler.schema, unknownQuery);
             context.query = query;
           }
         }

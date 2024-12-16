@@ -38,6 +38,7 @@ export { RouteBuilder } from "./route-builder";
 export { Route } from "./route";
 export { TypedResponse } from "./response";
 export { groupRoutes } from "./utils/routes";
+export { SchemaError, validateInput } from "./utils/validate";
 export type { SomeResponse, ResolvePath } from "./types";
 export type { BaseContext } from "./context";
 export type { ResponseBuilder } from "./response";

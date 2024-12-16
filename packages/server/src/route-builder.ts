@@ -1,4 +1,4 @@
-import type { InferInput, InferOutput } from "valibot";
+import type { StandardSchemaV1 } from "@standard-schema/spec";
 import type { BaseContext } from "./context";
 import type { TypedResponse } from "./response";
 import { Route } from "./route";
@@ -64,8 +64,8 @@ export class RouteBuilder<
   public body<TSchema extends AnySchema>(
     schema: TSchema,
   ): RouteBuilder<
-    Prettify<Omit<TContext, "body"> & { body: InferOutput<TSchema> }>,
-    Prettify<Omit<TInputs, "body"> & { body: InferInput<TSchema> }>,
+    Prettify<Omit<TContext, "body"> & { body: StandardSchemaV1.InferOutput<TSchema> }>,
+    Prettify<Omit<TInputs, "body"> & { body: StandardSchemaV1.InferInput<TSchema> }>,
     TErrorResponse,
     TResponses
   > {
@@ -81,8 +81,8 @@ export class RouteBuilder<
   public query<TSchema extends AnySchema>(
     schema: TSchema,
   ): RouteBuilder<
-    Prettify<Omit<TContext, "query"> & { query: InferOutput<TSchema> }>,
-    Prettify<TInputs & { query: InferInput<TSchema> }>,
+    Prettify<Omit<TContext, "query"> & { query: StandardSchemaV1.InferOutput<TSchema> }>,
+    Prettify<TInputs & { query: StandardSchemaV1.InferInput<TSchema> }>,
     TErrorResponse,
     TResponses
   > {

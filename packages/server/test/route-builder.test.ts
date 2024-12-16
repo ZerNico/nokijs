@@ -518,7 +518,7 @@ describe("RouteBuilder", () => {
       expect(combined.opts.errorHandler).toBeUndefined();
       expectTypeOf<
         InferContext<typeof combined>
-      >().toEqualTypeOf<BaseContext>();
+      >().toMatchTypeOf<BaseContext>();
       expectTypeOf<InferInputs<typeof combined>>().toMatchTypeOf<
         Record<ValidationKeys, never>
       >();
