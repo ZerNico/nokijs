@@ -125,10 +125,11 @@ type AllOptional<T> = T extends Record<string, never>
     ? true
     : false;
 
+type MaybePromise<T> = T | Promise<T>;
 export interface ClientOptions {
   onResponse?: (data: {
     response: Response;
     url: string;
     options: RequestInit;
-  }) => Response;
+  }) => MaybePromise<Response>;
 }

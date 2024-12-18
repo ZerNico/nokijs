@@ -4,7 +4,6 @@ import type { ClientOptions, NokiClient } from "./types";
 import { encodeBody, inferContentType, parseResponseBody } from "./utils/body";
 import { joinHeaders } from "./utils/headers";
 
-
 export function client<const TNoki extends Noki<any>>(
   url: string,
   options?: ClientOptions,
@@ -63,7 +62,7 @@ const createProxy = (
       let response = await fetch(url, requestOptions);
       
       if (options?.onResponse) {
-        response = options.onResponse({ response, url, options: requestOptions });
+        response = await options.onResponse({ response, url, options: requestOptions });
       }
 
       const typedResponse = {
