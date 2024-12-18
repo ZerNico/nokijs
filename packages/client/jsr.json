@@ -1,11 +1,11 @@
 {
   "$schema": "https://jsr.io/schema/config-file.v1.json",
   "name": "@nokijs/client",
-  "version": "0.0.1-alpha.27",
+  "version": "0.0.1-alpha.28",
   "exports": "./src/index.ts",
   "license": "MIT",
   "imports": {
-    "@nokijs/server": "jsr:@nokijs/server@0.0.1-alpha.27",
+    "@nokijs/server": "jsr:@nokijs/server@0.0.1-alpha.28",
     "ufo": "npm:ufo@^1.5.4"
   }
 }
