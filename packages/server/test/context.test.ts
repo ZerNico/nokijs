@@ -25,4 +25,13 @@ describe("createContextFromRequest", () => {
 
     expect(context.query).toEqual({ foo: "bar" });
   });
+
+  it("should create a context with a headers object", () => {
+    const mockRequest = new Request("http://example.com");
+    mockRequest.headers.set("foo", "bar");
+
+    const context = createContextFromRequest(mockRequest);
+
+    expect(context.headers).toEqual({ foo: "bar" });
+  });
 });
