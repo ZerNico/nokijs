@@ -34,4 +34,11 @@ describe("createContextFromRequest", () => {
 
     expect(context.headers).toEqual({ foo: "bar" });
   });
+
+  it("should create a context with method", () => {
+    const mockRequest = new Request("http://example.com", { method: "POST" });
+    const context = createContextFromRequest(mockRequest);
+
+    expect(context.method).toBe("POST");
+  });
 });

@@ -7,6 +7,7 @@ export interface BaseContext {
   res: ResponseBuilder;
   query: QueryObject;
   headers: Record<string, string>;
+  method: string;
   getCookie(name: string): string | undefined;
 }
 
@@ -17,6 +18,7 @@ export function createContextFromRequest(request: Request): BaseContext {
     raw: request.clone(),
     res: new ResponseBuilder(),
     headers: Object.fromEntries(request.headers.entries()),
+    method: request.method,
     query: getQuery(request.url),
     getCookie: (name: string) => {
       return cookies[name];
