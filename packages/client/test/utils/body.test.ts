@@ -1,9 +1,20 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   encodeBody,
   inferContentType,
   parseResponseBody,
 } from "../../src/utils/body";
+
+beforeAll(() => {
+  global.File = class File {
+    name: string;
+    content: Blob;
+    constructor(bits: BlobPart[], name: string) {
+      this.content = new Blob(bits);
+      this.name = name;
+    }
+  } as any;
+});
 
 describe("parseResponseBody", () => {
   it("should parse JSON response", async () => {
@@ -87,5 +98,55 @@ describe("encodeBody", () => {
     const body = { foo: "bar" };
     const encoded = encodeBody(body, "application/octet-stream");
     expect(encoded).toBe("");
+  });
+});
+
+describe("body utils", () => {
+  describe("inferContentType", () => {
+    it("should return undefined for null or undefined", () => {
+      expect(inferContentType(null)).toBeUndefined();
+      expect(inferContentType(undefined)).toBeUndefined();
+    });
+
+    it("should return undefined for FormData", () => {
+      expect(inferContentType(new FormData())).toBeUndefined();
+    });
+
+    it("should return undefined when body contains File", () => {
+      const file = new File(["test"], "test.txt");
+      const body = { file };
+      expect(inferContentType(body)).toBeUndefined();
+    });
+
+    it("should return application/json for objects", () => {
+      expect(inferContentType({ foo: "bar" })).toBe("application/json");
+    });
+
+    it("should return text/plain for other types", () => {
+      expect(inferContentType("test")).toBe("text/plain");
+      expect(inferContentType(123)).toBe("text/plain");
+    });
+  });
+
+  describe("encodeBody", () => {
+    it("should return undefined for null or undefined", () => {
+      expect(encodeBody(null)).toBeUndefined();
+      expect(encodeBody(undefined)).toBeUndefined();
+    });
+
+    it("should pass through FormData", () => {
+      const formData = new FormData();
+      expect(encodeBody(formData)).toBe(formData);
+    });
+
+    it("should stringify JSON bodies", () => {
+      const body = { foo: "bar" };
+      expect(encodeBody(body, "application/json")).toBe('{"foo":"bar"}');
+    });
+
+    it("should convert to string for text/plain", () => {
+      expect(encodeBody("test", "text/plain")).toBe("test");
+      expect(encodeBody(123, "text/plain")).toBe("123");
+    });
   });
 });

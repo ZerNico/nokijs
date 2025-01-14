@@ -15,6 +15,12 @@ export async function parseBody(request: Request): Promise<unknown> {
     return data;
   }
 
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await request.formData();
+    const data = Object.fromEntries(formData.entries());
+    return data;
+  }
+
   if (contentType.includes("text/plain")) {
     return await request.text();
   }

@@ -38,6 +38,18 @@ describe("parseBody", () => {
     expect(result).toBe("plain text");
   });
 
+  it("should parse multipart/form-data body", async () => {
+    const formData = new FormData();
+    formData.append("foo", "bar");
+    
+    const request = new Request("http://localhost/test", {
+      method: "POST",
+      body: formData,
+    });
+    const result = await parseBody(request);
+    expect(result).toEqual({ foo: "bar" });
+  });
+
   it("should return undefined for unsupported content-type", async () => {
     const request = new Request("http://localhost/test", {
       method: "POST",

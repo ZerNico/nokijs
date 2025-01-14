@@ -47,10 +47,10 @@ const createProxy = (
       const encodedBody = encodeBody(body, contentType);
 
       const contentTypeHeaders = new Headers();
-      if (contentType) {
+      // Only set content-type if it's not FormData (which needs automatic boundary)
+      if (contentType && !(encodedBody instanceof FormData)) {
         contentTypeHeaders.set("content-type", contentType);
       }
-
 
       const requestOptions = {
         method: method?.toUpperCase(),

@@ -1,6 +1,26 @@
 import { Noki, RouteBuilder } from "@nokijs/server";
-import { afterEach, describe, expect, expectTypeOf, it, vi } from "vitest";
+import { instance, object, string } from "valibot";
+import {
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  expectTypeOf,
+  it,
+  vi,
+} from "vitest";
 import { client } from "../src";
+
+beforeAll(() => {
+  global.File = class File {
+    name: string;
+    content: Blob;
+    constructor(bits: BlobPart[], name: string) {
+      this.content = new Blob(bits);
+      this.name = name;
+    }
+  } as any;
+});
 
 describe("client", () => {
   afterEach(() => {
@@ -75,7 +95,6 @@ describe("client", () => {
     expect(fetchMock).toHaveBeenCalledWith(
       "http://localhost:3000/test?abc=def",
       expect.objectContaining({
-
         credentials: "include",
       }),
     );
@@ -171,5 +190,36 @@ describe("client", () => {
     await testClient.test.get();
 
     expect(onResponse).toHaveBeenCalledTimes(3);
+  });
+
+  it("should automatically convert to form data when body contains files", async () => {
+    fetchMock.mockResponse(JSON.stringify({ success: true }));
+
+    const testApp = new Noki([
+      new RouteBuilder()
+        .body(object({ file: instance(File), name: string() }))
+        .handle("POST", "/upload", ({ res }) => res.json({ success: true })),
+    ]);
+    const testClient = client<typeof testApp>("http://localhost:3000");
+
+    const file = new File(["test"], "test.txt");
+    const response = await testClient.upload.post({
+      body: {
+        file,
+        name: "Test File",
+      },
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:3000/upload",
+      expect.objectContaining({
+        method: "POST",
+        body: expect.any(FormData),
+        headers: expect.objectContaining({}),
+      }),
+    );
+
+    const requestBody = fetchMock.mock.calls[0]?.[1]?.body as FormData;
+    expect(requestBody.get("name")).toBe('"Test File"');
   });
 });
