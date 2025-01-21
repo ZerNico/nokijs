@@ -64,8 +64,12 @@ export class RouteBuilder<
   public body<TSchema extends AnySchema>(
     schema: TSchema,
   ): RouteBuilder<
-    Prettify<Omit<TContext, "body"> & { body: StandardSchemaV1.InferOutput<TSchema> }>,
-    Prettify<Omit<TInputs, "body"> & { body: StandardSchemaV1.InferInput<TSchema> }>,
+    Prettify<
+      Omit<TContext, "body"> & { body: StandardSchemaV1.InferOutput<TSchema> }
+    >,
+    Prettify<
+      Omit<TInputs, "body"> & { body: StandardSchemaV1.InferInput<TSchema> }
+    >,
     TErrorResponse,
     TResponses
   > {
@@ -81,7 +85,9 @@ export class RouteBuilder<
   public query<TSchema extends AnySchema>(
     schema: TSchema,
   ): RouteBuilder<
-    Prettify<Omit<TContext, "query"> & { query: StandardSchemaV1.InferOutput<TSchema> }>,
+    Prettify<
+      Omit<TContext, "query"> & { query: StandardSchemaV1.InferOutput<TSchema> }
+    >,
     Prettify<TInputs & { query: StandardSchemaV1.InferInput<TSchema> }>,
     TErrorResponse,
     TResponses
@@ -106,28 +112,36 @@ export class RouteBuilder<
 
   public get<const TPath extends string, const TResponse extends SomeResponse>(
     path: TPath,
-    fn: (context: TContext) => MaybePromise<TResponse>,
+    fn: (
+      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+    ) => MaybePromise<TResponse>,
   ): Route<"GET", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("GET", path, fn);
   }
 
   public post<const TPath extends string, const TResponse extends SomeResponse>(
     path: TPath,
-    fn: (context: TContext) => MaybePromise<TResponse>,
+    fn: (
+      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+    ) => MaybePromise<TResponse>,
   ): Route<"POST", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("POST", path, fn);
   }
 
   public head<const TPath extends string, const TResponse extends SomeResponse>(
     path: TPath,
-    fn: (context: TContext) => MaybePromise<TResponse>,
+    fn: (
+      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+    ) => MaybePromise<TResponse>,
   ): Route<"HEAD", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("HEAD", path, fn);
   }
 
   public put<const TPath extends string, const TResponse extends SomeResponse>(
     path: TPath,
-    fn: (context: TContext) => MaybePromise<TResponse>,
+    fn: (
+      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+    ) => MaybePromise<TResponse>,
   ): Route<"PUT", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("PUT", path, fn);
   }
@@ -137,7 +151,9 @@ export class RouteBuilder<
     const TResponse extends SomeResponse,
   >(
     path: TPath,
-    fn: (context: TContext) => MaybePromise<TResponse>,
+    fn: (
+      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+    ) => MaybePromise<TResponse>,
   ): Route<"DELETE", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("DELETE", path, fn);
   }
@@ -147,7 +163,9 @@ export class RouteBuilder<
     const TResponse extends SomeResponse,
   >(
     path: TPath,
-    fn: (context: TContext) => MaybePromise<TResponse>,
+    fn: (
+      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+    ) => MaybePromise<TResponse>,
   ): Route<"PATCH", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("PATCH", path, fn);
   }
@@ -157,7 +175,9 @@ export class RouteBuilder<
     const TResponse extends SomeResponse,
   >(
     path: TPath,
-    fn: (context: TContext) => MaybePromise<TResponse>,
+    fn: (
+      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+    ) => MaybePromise<TResponse>,
   ): Route<"OPTIONS", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("OPTIONS", path, fn);
   }
@@ -167,7 +187,9 @@ export class RouteBuilder<
     const TResponse extends SomeResponse,
   >(
     path: TPath,
-    fn: (context: TContext) => MaybePromise<TResponse>,
+    fn: (
+      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+    ) => MaybePromise<TResponse>,
   ): Route<"TRACE", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("TRACE", path, fn);
   }
@@ -180,7 +202,7 @@ export class RouteBuilder<
     method: TMethod,
     path: TPath,
     fn: (
-      context: TContext & { params: ResolvePath<TPath> },
+      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
     ) => MaybePromise<TResponse>,
   ): Route<TMethod, TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return new Route({

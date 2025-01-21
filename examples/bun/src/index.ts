@@ -35,7 +35,7 @@ const route = baseRoute
       return res.json({ message: "Bar cannot be foo." }, { status: 400 });
     }
   })
-  .post("/api/:id", ({ res, query, abc }) => {
+  .post("/api/:id", ({ res, query, abc, params }) => {
     return res.json({ message: "Hello, World!", abc });
   });
 
