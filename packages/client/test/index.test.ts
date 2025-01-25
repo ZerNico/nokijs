@@ -222,4 +222,88 @@ describe("client", () => {
     const requestBody = fetchMock.mock.calls[0]?.[1]?.body as FormData;
     expect(requestBody.get("name")).toBe('"Test File"');
   });
+
+  it("should use custom fetch implementation when provided", async () => {
+    const customFetch = vi.fn(() => Promise.resolve(new Response("Custom Response")));
+    
+    const testApp = new Noki([
+      new RouteBuilder().handle("GET", "/test", ({ res }) =>
+        res.json({ message: "Hello, World!" }),
+      ),
+    ]);
+    const testClient = client<typeof testApp>("http://localhost:3000", {
+      fetch: customFetch,
+    });
+
+    const response = await testClient.test.get();
+
+    expect(customFetch).toHaveBeenCalledWith(
+      "http://localhost:3000/test",
+      expect.objectContaining({
+        method: "GET",
+      }),
+    );
+    expect(response.data).toBe("Custom Response");
+  });
+
+  it("should apply default fetchOptions to all requests", async () => {
+    fetchMock.mockResponse("Test Response");
+    
+    const testApp = new Noki([
+      new RouteBuilder().handle("GET", "/test", ({ res }) =>
+        res.json({ message: "Hello, World!" }),
+      ),
+    ]);
+    const testClient = client<typeof testApp>("http://localhost:3000", {
+      fetchOptions: {
+        credentials: "include",
+        mode: "cors",
+        cache: "no-cache",
+      },
+    });
+
+    await testClient.test.get();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:3000/test",
+      expect.objectContaining({
+        method: "GET",
+        credentials: "include",
+        mode: "cors",
+        cache: "no-cache",
+      }),
+    );
+  });
+
+  it("should allow request-specific options to override default fetchOptions", async () => {
+    fetchMock.mockResponse("Test Response");
+    
+    const testApp = new Noki([
+      new RouteBuilder().handle("GET", "/test", ({ res }) =>
+        res.json({ message: "Hello, World!" }),
+      ),
+    ]);
+    const testClient = client<typeof testApp>("http://localhost:3000", {
+      fetchOptions: {
+        credentials: "include",
+        mode: "cors",
+        cache: "no-cache",
+      },
+    });
+
+    await testClient.test.get({
+      credentials: "omit",
+      cache: "force-cache",
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:3000/test",
+      expect.objectContaining({
+        method: "GET",
+        credentials: "omit",
+        mode: "cors",
+        cache: "force-cache",
+      }),
+    );
+  });
 });

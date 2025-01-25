@@ -132,4 +132,6 @@ export interface ClientOptions {
     url: string;
     options: RequestInit;
   }) => MaybePromise<Response>;
+  fetch?: typeof fetch;
+  fetchOptions?: Omit<RequestInit, 'body' | 'method' | 'headers'>;
 }

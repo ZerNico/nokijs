@@ -56,10 +56,11 @@ const createProxy = (
         method: method?.toUpperCase(),
         headers: joinHeaders(contentTypeHeaders, headers),
         body: encodedBody,
+        ...options?.fetchOptions,
         ...requestInit,
       }
 
-      let response = await fetch(url, requestOptions);
+      let response = await (options?.fetch || fetch)(url, requestOptions);
       
       if (options?.onResponse) {
         response = await options.onResponse({ response, url, options: requestOptions });

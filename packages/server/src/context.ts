@@ -13,7 +13,7 @@ export interface BaseContext {
 
 export function createContextFromRequest(request: Request): BaseContext {
   const cookies = parseCookies(request.headers.get("cookie") || "");
-
+  
   return {
     raw: request.clone(),
     res: new ResponseBuilder(),
