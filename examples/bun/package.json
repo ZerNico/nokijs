@@ -12,6 +12,6 @@
     "valibot": "1.0.0-beta.11"
   },
   "devDependencies": {
-    "@types/bun": "^1.1.9"
+    "@types/bun": "^1.2.1"
   }
 }
