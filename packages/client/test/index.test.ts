@@ -220,12 +220,14 @@ describe("client", () => {
     );
 
     const requestBody = fetchMock.mock.calls[0]?.[1]?.body as FormData;
-    expect(requestBody.get("name")).toBe('"Test File"');
+    expect(requestBody.get("name")).toBe("Test File");
   });
 
   it("should use custom fetch implementation when provided", async () => {
-    const customFetch = vi.fn(() => Promise.resolve(new Response("Custom Response")));
-    
+    const customFetch = vi.fn(() =>
+      Promise.resolve(new Response("Custom Response")),
+    );
+
     const testApp = new Noki([
       new RouteBuilder().handle("GET", "/test", ({ res }) =>
         res.json({ message: "Hello, World!" }),
@@ -248,7 +250,7 @@ describe("client", () => {
 
   it("should apply default fetchOptions to all requests", async () => {
     fetchMock.mockResponse("Test Response");
-    
+
     const testApp = new Noki([
       new RouteBuilder().handle("GET", "/test", ({ res }) =>
         res.json({ message: "Hello, World!" }),
@@ -277,7 +279,7 @@ describe("client", () => {
 
   it("should allow request-specific options to override default fetchOptions", async () => {
     fetchMock.mockResponse("Test Response");
-    
+
     const testApp = new Noki([
       new RouteBuilder().handle("GET", "/test", ({ res }) =>
         res.json({ message: "Hello, World!" }),

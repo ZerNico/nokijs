@@ -4,11 +4,11 @@ export function inferContentType(body: unknown): string | undefined {
   }
 
   if (body instanceof FormData) {
-    return undefined; // Let the browser set the content-type with boundary
+    return undefined;
   }
 
   if (hasFileField(body)) {
-    return undefined; // Will be converted to FormData
+    return undefined;
   }
 
   if (typeof body === "object") {
@@ -20,7 +20,7 @@ export function inferContentType(body: unknown): string | undefined {
 
 export function encodeBody(
   body: unknown,
-  contentType?: string
+  contentType?: string,
 ): BodyInit | undefined {
   if (body === undefined || body === null) {
     return undefined;
@@ -32,11 +32,13 @@ export function encodeBody(
 
   if (hasFileField(body)) {
     const formData = new FormData();
-    for (const [key, value] of Object.entries(body as Record<string, unknown>)) {
+    for (const [key, value] of Object.entries(
+      body as Record<string, unknown>,
+    )) {
       if (value instanceof File) {
         formData.append(key, value);
       } else {
-        formData.append(key, JSON.stringify(value));
+        formData.append(key, String(value));
       }
     }
     return formData;
@@ -46,7 +48,11 @@ export function encodeBody(
     return JSON.stringify(body);
   }
 
-  return String(body);
+  if (contentType === "text/plain") {
+    return String(body);
+  }
+
+  return "";
 }
 
 function hasFileField(body: unknown): boolean {
@@ -55,7 +61,7 @@ function hasFileField(body: unknown): boolean {
   }
 
   return Object.values(body as Record<string, unknown>).some(
-    (value) => value instanceof File
+    (value) => value instanceof File,
   );
 }
 

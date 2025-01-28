@@ -148,5 +148,11 @@ describe("body utils", () => {
       expect(encodeBody("test", "text/plain")).toBe("test");
       expect(encodeBody(123, "text/plain")).toBe("123");
     });
+
+    it("should return form data if body contains files", () => {
+      const file = new File(["test"], "test.txt");
+      const body = { file };
+      expect(encodeBody(body)).toBeInstanceOf(FormData);
+    });
   });
 });
