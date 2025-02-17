@@ -4,9 +4,14 @@ import type { SomeResponse } from "../../src/types";
 import { groupRoutes } from "../../src/utils/routes";
 
 describe("groupRoutes", () => {
+  const createRoute = <TPath extends string, TMethod extends string>(
+    path: TPath,
+    method: TMethod,
+  ) => new Route({ path, method, fn: vi.fn(), handlers: [] });
+
   const mockRoutes = [
-    new Route({ path: "/route1", method: "GET", fn: vi.fn(), handlers: [] }),
-    new Route({ path: "/route2", method: "POST", fn: vi.fn(), handlers: [] }),
+    createRoute("/route1", "GET"),
+    createRoute("/route2", "POST"),
   ] as const;
 
   it("should returns as is if no prefix is provided", () => {
@@ -34,5 +39,83 @@ describe("groupRoutes", () => {
     expectTypeOf(result[1]).toMatchTypeOf<
       Route<"POST", "/prefix/route2", SomeResponse, any>
     >();
+  });
+
+  it("should properly handle a trailing slash prefix", () => {
+    const routes = [
+      createRoute("/", "GET"),
+      createRoute("/route", "GET"),
+      createRoute("/route/", "GET"),
+      createRoute("route/", "GET"),
+      createRoute("route", "GET"),
+      createRoute("", "GET"),
+    ] as const;
+
+    const result = groupRoutes(routes, { prefix: "/prefix/" });
+
+    expect(result[0].path).toBe("/prefix/");
+    expectTypeOf(result[0].path).toEqualTypeOf<"/prefix/">();
+    expect(result[1].path).toBe("/prefix/route");
+    expectTypeOf(result[1].path).toEqualTypeOf<"/prefix/route">();
+    expect(result[2].path).toBe("/prefix/route/");
+    expectTypeOf(result[2].path).toEqualTypeOf<"/prefix/route/">();
+    expect(result[3].path).toBe("/prefix/route/");
+    expectTypeOf(result[3].path).toEqualTypeOf<"/prefix/route/">();
+    expect(result[4].path).toBe("/prefix/route");
+    expectTypeOf(result[4].path).toEqualTypeOf<"/prefix/route">();
+    expect(result[5].path).toBe("/prefix/");
+    expectTypeOf(result[5].path).toEqualTypeOf<"/prefix/">();
+  });
+
+  it("should properly handle a prefix without a trailing slash", () => {
+    const routes = [
+      createRoute("/", "GET"),
+      createRoute("/route", "POST"),
+      createRoute("/route/", "GET"),
+      createRoute("route/", "GET"),
+      createRoute("route", "GET"),
+      createRoute("", "GET"),
+    ] as const;
+
+    const result = groupRoutes(routes, { prefix: "/prefix" });
+
+    expect(result[0].path).toBe("/prefix");
+    expectTypeOf(result[0].path).toEqualTypeOf<"/prefix">();
+    expect(result[1].path).toBe("/prefix/route");
+    expectTypeOf(result[1].path).toEqualTypeOf<"/prefix/route">();
+    expect(result[2].path).toBe("/prefix/route/");
+    expectTypeOf(result[2].path).toEqualTypeOf<"/prefix/route/">();
+    expect(result[3].path).toBe("/prefix/route/");
+    expectTypeOf(result[3].path).toEqualTypeOf<"/prefix/route/">();
+    expect(result[4].path).toBe("/prefix/route");
+    expectTypeOf(result[4].path).toEqualTypeOf<"/prefix/route">();
+    expect(result[5].path).toBe("/prefix");
+    expectTypeOf(result[5].path).toEqualTypeOf<"/prefix">();
+  });
+
+  it("should properly handle a prefix without slash", () => {
+    const routes = [
+      createRoute("/", "GET"),
+      createRoute("/route", "POST"),
+      createRoute("/route/", "GET"),
+      createRoute("route/", "GET"),
+      createRoute("route", "GET"),
+      createRoute("", "GET"),
+    ] as const;
+
+    const result = groupRoutes(routes, { prefix: "prefix" });
+
+    expect(result[0].path).toBe("prefix");
+    expectTypeOf(result[0].path).toEqualTypeOf<"prefix">();
+    expect(result[1].path).toBe("prefix/route");
+    expectTypeOf(result[1].path).toEqualTypeOf<"prefix/route">();
+    expect(result[2].path).toBe("prefix/route/");
+    expectTypeOf(result[2].path).toEqualTypeOf<"prefix/route/">();
+    expect(result[3].path).toBe("prefix/route/");
+    expectTypeOf(result[3].path).toEqualTypeOf<"prefix/route/">();
+    expect(result[4].path).toBe("prefix/route");
+    expectTypeOf(result[4].path).toEqualTypeOf<"prefix/route">();
+    expect(result[5].path).toBe("prefix");
+    expectTypeOf(result[5].path).toEqualTypeOf<"prefix">();
   });
 });

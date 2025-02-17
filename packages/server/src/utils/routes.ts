@@ -1,4 +1,5 @@
 import { type AnyRoute, Route } from "../route";
+import { joinURL } from "ufo";
 
 export function groupRoutes<
   const TRoutes extends ReadonlyArray<AnyRoute>,
@@ -12,15 +13,33 @@ export function groupRoutes<
   }
 
   return routes.map((route) => {
+    const path =
+      opts.prefix === undefined ? route.path : joinURL(opts.prefix, route.path);
+
     return new Route({
       method: route.method,
       handlers: route.handlers,
       fn: route.fn,
-      path: `${opts.prefix}${route.path}`,
+      path,
       errorHandler: route.errorHandler,
     });
   }) as any;
 }
+
+type RemoveLeadingSlash<T extends string> = T extends `/${infer Rest}`
+  ? Rest
+  : T;
+type RemoveTrailingSlash<T extends string> = T extends `${infer Rest}/`
+  ? Rest
+  : T;
+
+type JoinURL<TPrefix extends string, TPath extends string> = TPrefix extends ""
+  ? TPath
+  : TPath extends ""
+    ? TPrefix
+    : TPath extends "/"
+      ? TPrefix
+      : `${RemoveTrailingSlash<TPrefix>}/${RemoveLeadingSlash<TPath>}`;
 
 type PrefixedRoutes<
   TRoutes extends ReadonlyArray<AnyRoute>,
@@ -32,6 +51,6 @@ type PrefixedRoutes<
     infer TResponse,
     infer TInputs
   >
-    ? Route<TMethod, `${TPrefix}${TPath}`, TResponse, TInputs>
+    ? Route<TMethod, JoinURL<TPrefix, TPath>, TResponse, TInputs>
     : never;
 };
