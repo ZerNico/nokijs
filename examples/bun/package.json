@@ -9,7 +9,7 @@
     "@nokijs/client": "workspace:*",
     "@nokijs/server": "workspace:*",
     "@standard-schema/utils": "^0.3.0",
-    "valibot": "1.0.0-beta.11"
+    "valibot": "1.0.0-rc.2"
   },
   "devDependencies": {
     "@types/bun": "^1.2.1"

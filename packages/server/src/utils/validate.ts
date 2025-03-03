@@ -1,13 +1,5 @@
 import type { StandardSchemaV1 } from "@standard-schema/spec";
-
-export class SchemaError extends Error {
-  public readonly issues: ReadonlyArray<StandardSchemaV1.Issue>;
-  constructor(issues: ReadonlyArray<StandardSchemaV1.Issue>) {
-    super(issues[0]?.message);
-    this.name = "SchemaError";
-    this.issues = issues;
-  }
-}
+import { SchemaError } from "@standard-schema/utils";
 
 export async function validateInput<TSchema extends StandardSchemaV1>(
   schema: TSchema,
