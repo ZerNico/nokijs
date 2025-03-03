@@ -4,7 +4,7 @@
   "exports": "./src/index.ts",
   "license": "MIT",
   "imports": {
-    "memoirist": "npm:memoirist@^0.2.0",
+    "memoirist": "npm:memoirist@^0.3.0",
     "ufo": "npm:ufo@^1.5.4",
     "@standard-schema/spec": "jsr:@standard-schema/spec@1.0.0"
   }
