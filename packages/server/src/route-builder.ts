@@ -3,7 +3,6 @@ import type { BaseContext } from "./context";
 import type { TypedResponse } from "./response";
 import { Route } from "./route";
 import type {
-  AnySchema,
   Handler,
   MaybePromise,
   Prettify,
@@ -61,7 +60,7 @@ export class RouteBuilder<
     });
   }
 
-  public body<TSchema extends AnySchema>(
+  public body<TSchema extends StandardSchemaV1>(
     schema: TSchema,
   ): RouteBuilder<
     Prettify<
@@ -82,13 +81,15 @@ export class RouteBuilder<
     });
   }
 
-  public query<TSchema extends AnySchema>(
+  public query<TSchema extends StandardSchemaV1<Record<string, string>, Record<string, any>>>(
     schema: TSchema,
   ): RouteBuilder<
     Prettify<
       Omit<TContext, "query"> & { query: StandardSchemaV1.InferOutput<TSchema> }
     >,
-    Prettify<TInputs & { query: StandardSchemaV1.InferInput<TSchema> }>,
+    Prettify<
+      Omit<TInputs, "query"> & { query: StandardSchemaV1.InferInput<TSchema> }
+    >,
     TErrorResponse,
     TResponses
   > {
@@ -97,6 +98,29 @@ export class RouteBuilder<
       handlers: [
         ...this.opts.handlers,
         { type: "validate", schema, key: "query" },
+      ],
+    });
+  }
+
+  public params<TSchema extends StandardSchemaV1<Record<string, string>, Record<string, any>>>(
+    schema: TSchema,
+  ): RouteBuilder<
+    Prettify<
+      Omit<TContext, "params"> & {
+        params: StandardSchemaV1.InferOutput<TSchema>;
+      }
+    >,
+    Prettify<
+      Omit<TInputs, "params"> & { params: StandardSchemaV1.InferInput<TSchema> }
+    >,
+    TErrorResponse,
+    TResponses
+  > {
+    return new RouteBuilder({
+      ...this.opts,
+      handlers: [
+        ...this.opts.handlers,
+        { type: "validate", schema, key: "params" },
       ],
     });
   }
@@ -113,7 +137,11 @@ export class RouteBuilder<
   public get<const TPath extends string, const TResponse extends SomeResponse>(
     path: TPath,
     fn: (
-      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+      context: Prettify<
+        TContext["params"] extends never
+          ? Omit<TContext, "params"> & { params: ResolvePath<TPath> }
+          : TContext
+      >,
     ) => MaybePromise<TResponse>,
   ): Route<"GET", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("GET", path, fn);
@@ -122,7 +150,11 @@ export class RouteBuilder<
   public post<const TPath extends string, const TResponse extends SomeResponse>(
     path: TPath,
     fn: (
-      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+      context: Prettify<
+        TContext["params"] extends never
+          ? Omit<TContext, "params"> & { params: ResolvePath<TPath> }
+          : TContext
+      >,
     ) => MaybePromise<TResponse>,
   ): Route<"POST", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("POST", path, fn);
@@ -131,7 +163,11 @@ export class RouteBuilder<
   public head<const TPath extends string, const TResponse extends SomeResponse>(
     path: TPath,
     fn: (
-      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+      context: Prettify<
+        TContext["params"] extends never
+          ? Omit<TContext, "params"> & { params: ResolvePath<TPath> }
+          : TContext
+      >,
     ) => MaybePromise<TResponse>,
   ): Route<"HEAD", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("HEAD", path, fn);
@@ -140,7 +176,11 @@ export class RouteBuilder<
   public put<const TPath extends string, const TResponse extends SomeResponse>(
     path: TPath,
     fn: (
-      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+      context: Prettify<
+        TContext["params"] extends never
+          ? Omit<TContext, "params"> & { params: ResolvePath<TPath> }
+          : TContext
+      >,
     ) => MaybePromise<TResponse>,
   ): Route<"PUT", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("PUT", path, fn);
@@ -152,7 +192,11 @@ export class RouteBuilder<
   >(
     path: TPath,
     fn: (
-      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+      context: Prettify<
+        TContext["params"] extends never
+          ? Omit<TContext, "params"> & { params: ResolvePath<TPath> }
+          : TContext
+      >,
     ) => MaybePromise<TResponse>,
   ): Route<"DELETE", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("DELETE", path, fn);
@@ -164,7 +208,11 @@ export class RouteBuilder<
   >(
     path: TPath,
     fn: (
-      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+      context: Prettify<
+        TContext["params"] extends never
+          ? Omit<TContext, "params"> & { params: ResolvePath<TPath> }
+          : TContext
+      >,
     ) => MaybePromise<TResponse>,
   ): Route<"PATCH", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("PATCH", path, fn);
@@ -176,7 +224,11 @@ export class RouteBuilder<
   >(
     path: TPath,
     fn: (
-      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+      context: Prettify<
+        TContext["params"] extends never
+          ? Omit<TContext, "params"> & { params: ResolvePath<TPath> }
+          : TContext
+      >,
     ) => MaybePromise<TResponse>,
   ): Route<"OPTIONS", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("OPTIONS", path, fn);
@@ -188,7 +240,11 @@ export class RouteBuilder<
   >(
     path: TPath,
     fn: (
-      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+      context: Prettify<
+        TContext["params"] extends never
+          ? Omit<TContext, "params"> & { params: ResolvePath<TPath> }
+          : TContext
+      >,
     ) => MaybePromise<TResponse>,
   ): Route<"TRACE", TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return this.handle("TRACE", path, fn);
@@ -202,7 +258,11 @@ export class RouteBuilder<
     method: TMethod,
     path: TPath,
     fn: (
-      context: Prettify<TContext & { params: ResolvePath<TPath> }>,
+      context: Prettify<
+        TContext["params"] extends never
+          ? Omit<TContext, "params"> & { params: ResolvePath<TPath> }
+          : TContext
+      >,
     ) => MaybePromise<TResponse>,
   ): Route<TMethod, TPath, TResponse | TErrorResponse | TResponses, TInputs> {
     return new Route({

@@ -73,6 +73,22 @@ describe("client", () => {
     });
   });
 
+  it("allows parameters defined via validators", () => {
+    const testApp = new Noki([
+      new RouteBuilder()
+        .params(object({ id: string() }))
+      .handle("GET", "/test/:id", ({ res }) =>
+        res.json({ message: "Hello, World!" }),
+      ),
+    ]);
+    const testClient = client<typeof testApp>("http://localhost:3000");
+
+    expect(testClient.test[":id"].get).toBeTypeOf("function");
+    expectTypeOf(testClient.test[":id"].get).toBeCallableWith({
+      params: { id: "123" },
+    });
+  });
+
   it("allows passing additional request options", async () => {
     fetchMock.mockResponse("Hello, World!");
 

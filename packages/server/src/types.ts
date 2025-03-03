@@ -6,7 +6,7 @@ export type Prettify<T> = {
   [K in keyof T]: T[K];
 } & {};
 
-export type ValidationKeys = "body" | "query";
+export type ValidationKeys = "body" | "query" | "params";
 
 export type DeriveHandler = {
   type: "derive";
@@ -14,7 +14,7 @@ export type DeriveHandler = {
 };
 export type ValidateHandler = {
   type: "validate";
-  schema: AnySchema;
+  schema: StandardSchemaV1;
   key: ValidationKeys;
 };
 export type BeforeHandler = {
@@ -24,7 +24,6 @@ export type BeforeHandler = {
 export type Handler = DeriveHandler | ValidateHandler | BeforeHandler;
 
 export type SomeResponse = Response | TypedResponse<any, any>;
-export type AnySchema = StandardSchemaV1;
 
 /* Thanks @SaltyAom <3 */
 type IsPathParameter<Part extends string> = Part extends `:${infer Parameter}`

@@ -160,6 +160,25 @@ describe("RouteBuilder", () => {
     });
   });
 
+  describe("params", () => {
+    it("should allow validating the params", () => {
+      const routeBuilder = new RouteBuilder();
+      const schema = object({
+        test: string(),
+      });
+      const paramsRouteBuilder = routeBuilder.params(schema);
+
+      expect(paramsRouteBuilder.opts.handlers[0]?.type).toBe("validate");
+      expect((paramsRouteBuilder.opts.handlers[0] as any).key).toBe("params");
+      expect((paramsRouteBuilder.opts.handlers[0] as any).schema).toBe(schema);
+
+      expect(paramsRouteBuilder).toBeInstanceOf(RouteBuilder);
+      expectTypeOf(paramsRouteBuilder).toMatchTypeOf<
+        RouteBuilder<{ params: { test: string } }, { params: { test: string } }>
+      >();
+    });
+  });
+
   describe("handle", () => {
     it("should allow creating a route with method and path", () => {
       const routeBuilder = new RouteBuilder();
@@ -357,14 +376,15 @@ describe("RouteBuilder", () => {
 
       const otherBuilder = new RouteBuilder()
         .derive(() => ({ baz: 123 }))
-        .query(object({ id: string() }));
+        .query(object({ id: string() }))
+        .params(object({ id: string() }));
 
       const combined = routeBuilder.use(otherBuilder);
 
       expectTypeOf(combined).toMatchTypeOf<
         RouteBuilder<
           { foo: string; baz: number } & BaseContext,
-          { body: { name: string }; query: { id: string } }
+          { body: { name: string }; query: { id: string }; params: { id: string } }
         >
       >();
     });
@@ -447,6 +467,18 @@ describe("RouteBuilder", () => {
       }>();
     });
 
+    it("should merge multiple params validators", () => {
+      const first = new RouteBuilder().params(object({ id: string() }));
+      const second = new RouteBuilder().params(object({ name: string() }));
+
+      const combined = first.use(second);
+
+      expect(combined.opts.handlers).toHaveLength(2);
+      expectTypeOf<InferInputs<typeof combined>>().toMatchTypeOf<{
+        params: { id: string } & { name: string };
+      }>();
+    });
+
     it("should keep the first error handler when merging", () => {
       const firstError = () => new Response("first");
       const secondError = () => new Response("second");
@@ -467,7 +499,8 @@ describe("RouteBuilder", () => {
 
       const validation = new RouteBuilder()
         .body(object({ data: string() }))
-        .query(object({ version: string() }));
+        .query(object({ version: string() }))
+        .params(object({ id: string() }));
 
       const logging = new RouteBuilder()
         .before(() => console.log("request"))
@@ -481,11 +514,13 @@ describe("RouteBuilder", () => {
           user: { id: number };
           body: { data: string };
           query: { version: string };
+          params: { id: string };
         } & BaseContext
       >();
       expectTypeOf<InferInputs<typeof combined>>().toMatchTypeOf<{
         body: { data: string };
         query: { version: string };
+        params: { id: string };
       }>();
     });
 

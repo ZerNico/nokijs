@@ -37,7 +37,9 @@ type Action<TRoute extends AnyRoute> = {
 type InferRequestOptions<TRoute extends AnyRoute> = Prettify<
   OmitEmptyRecord<{
     query?: QueryObject;
-    params: ResolvePath<TRoute["path"]>;
+    params: InferInputs<TRoute>["params"] extends never
+      ? ResolvePath<TRoute["path"]>
+      : InferInputs<TRoute>["params"];
     body: InferInputs<TRoute>["body"];
   }> &
     Omit<RequestInit, "body" | "method">
@@ -133,5 +135,5 @@ export interface ClientOptions {
     options: RequestInit;
   }) => MaybePromise<Response>;
   fetch?: typeof fetch;
-  fetchOptions?: Omit<RequestInit, 'body' | 'method' | 'headers'>;
+  fetchOptions?: Omit<RequestInit, "body" | "method" | "headers">;
 }
